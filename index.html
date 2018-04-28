@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Fish Finder</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="fish-icon.png">
+    <link rel="stylesheet" href="./leaflet/leaflet1.3.1.css" />
+    <link rel="stylesheet" href="./leaflet/markerCluster1.3.0.css"/>
+    <link rel="stylesheet" href="lakes.css" />
+  </head>
+
+  <body>
+    <div id="map"></div>
+    
+    <div id="menu">
+      <select id="speciesInput">
+        <option selected disabled>Target Species</option>
+        <option value="walleye">Walleye</option>
+        <option value="northern pike">Northern Pike</option>
+        <option value="muskellunge">Muskellunge</option>
+        <option value="tiger muskellunge">Tiger Muskellunge</option>
+        <option value="channel catfish">Channel Catfish</option>
+        <option value="flathead catfish">Flathead Catfish</option>
+        <option value="smallmouth bass">Smallmouth Bass</option>
+        <option value="largemouth bass">Largemouth Bass</option>
+        <option value="white bass">White Bass</option>
+        <option value="rock bass">Rock Bass</option>
+        <option value="crappie">Crappie</option>
+        <option value="sunfish">Sunfish</option>
+        <option value="yellow perch">Perch</option>
+        <option value="bullhead">Bullhead</option>
+        <option value="lake trout">Lake Trout</option>
+        <option value="brown trout">Brown Trout</option>
+        <option value="brook trout">Brook Trout</option>
+        <option value="rainbow trout">Rainbow Trout</option>
+        <option value="lake sturgeon">Lake Sturgeon</option>
+        <option value="lake whitefish">Lake Whitefish</option>
+        <option value="burbot">Burbot</option>
+        <option value="bowfin (dogfish)">Bowfin</option>
+        <option value="carp">Carp/Sucker</option>
+        <option value="all lakes">All Surveyed Lakes</option>
+      </select>
+    </div>
+
+    <div id='sources'>Map made with <b><i><a href="http://leafletjs.com/">leaflet.js</a></i></b> and <b><i><a href="http://www.mapbox.com">mapbox</a></i></b>
+      <br/>Lake data courtesy of the <b><i><a href="http://www.dnr.state.mn.us/index.html">Minnesota DNR</a></i></b></div>
+    </div>
+
+    <script type="text/javascript" src="./leaflet/leaflet1.3.1.js"></script>
+    <script type="text/javascript" src="./leaflet/markerCluster1.3.0.js"></script>
+    <script type="text/javascript" src="./scripts/allLakes.js"></script>
+    <script type="text/javascript" src="./scripts/averageResults.js"></script>
+    <script type="text/javascript" src="./scripts/speciesCodes.js"></script>
+    <script type="text/javascript" src="./scripts/lakes.js"></script>
+  </body>
+</html>
