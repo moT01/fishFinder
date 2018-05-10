@@ -89,15 +89,15 @@ let popup = L.popup({
 //variables for getSurveyData()
 let popupContent = '',
   surveyDates = [],
-  cpueDataPoint,
-  weightDataPoint,
   sortedSurveys = [],
   sortedSummaries = [],
   summaryResults = {},
   summaryGearCount = 0,
-  gearTypesUsed,
-  quantity = [],
-  quality = [];
+  gearTypesUsed = [],
+  cpueDataPoint,
+  weightDataPoint,
+  cpueDataset = [],
+  weightDataset = [];
 
 //this gets the lake data from the dnr and displays it
 function getSurveyData(lakeProperties, species) {
@@ -137,12 +137,14 @@ function getSurveyData(lakeProperties, species) {
       return a.surveyDate > b.surveyDate;
     });
 
+    //filter out targeted surveys of not correct species?
+    //
+    //
+
     //empty for surveys
     surveyDates = [],
-    cpueDataPoint = 0,
-    weightDataPoint = 0,
-    quantity = [],
-    quality = [];
+    cpueDataset = [],
+    weightDataset = [];
 
     //for each survey (lake selected has several surveys)
     sortedSurveys.forEach(survey => {
@@ -158,7 +160,9 @@ function getSurveyData(lakeProperties, species) {
 
       //empty for summaries
       summaryResults = {};
-      summaryGearCount = 0;
+      summaryGearCount = 0
+      cpueDataPoint = 0,
+      weightDataPoint = 0;
 
       sortedSummaries.forEach(summary => {
         /*{ //example summaryResults object//
@@ -193,24 +197,38 @@ function getSurveyData(lakeProperties, species) {
       summaryResults = {
         "Special Seining":[0.3, 4, 40],
         "Standard Gill Nets":[0.4, 10, 60]
-      }*/
+      }
 
-      //to find percent from average
+      //to find percent from average for weight
       //  SS[1]/MSK.SS.averageWeight = percent from average -  4/3 = 1.333
       //SGN[1]/MSK.SGN.averageWeight = percent from average - 10/7 = 1.428
+
+      //1.333 * (40/100) = .5332
+      //1.426 * (60/100) = .8556
+
+      //add together = 1.3888, means 38.88% above average
+
+      //to find percent from average for cpueDataPoint
+      //  SS[0]/MSK.SS.averageCPUE = percent from average -  .3/.2 = 1.5
+      //SGN[0]/MSK.SGN.averageCPUE = percent from average - .4/.35 = 1.14286
+
+      //1.5     * (40/100) = .6
+      //1.14286 * (60/100) = .6857
+
+      //add together = 1.2857, means 28.57% above average*/
 
       //array of gear types used in this survey
       gearTypesUsed = Object.keys(summaryResults);
 
       gearTypesUsed.forEach(type => {
         //this gets the weighted average deviation from the statewide averages (averageResults.json)
-        cpueDataPoint   += summaryResults[type][0]/averageResults[survey.fishCatchSummaries[0].species][type].averageCPUE   * (summaryResults[type][2]/summaryGearCount);
-        weightDataPoint += summaryResults[type][1]/averageResults[survey.fishCatchSummaries[0].species][type].averageWeight * (summaryResults[type][2]/summaryGearCount);
+        cpueDataPoint   += summaryResults[type][0]/averageResults[species][type].averageCPUE   * (summaryResults[type][2]/summaryGearCount);
+        weightDataPoint += summaryResults[type][1]/averageResults[species][type].averageWeight * (summaryResults[type][2]/summaryGearCount);
       });
 
-      //push to array for chart data
-      quantity.push(cpueDataPoint);
-      quality.push(weightDataPoint);
+      //turn data point into percentage, fix to two decimal places, push to array for chart data
+      cpueDataset.push(((cpueDataPoint-1)*100).toFixed(2));
+      weightDataset.push(((weightDataPoint-1)*100).toFixed(2));
     }); //end of sortedSurveys.forEach
 
     new Chart(document.getElementById('chart'), {
@@ -218,16 +236,18 @@ function getSurveyData(lakeProperties, species) {
       data: {
         labels: surveyDates,
         datasets: [{
-          data: quantity,
+          data: cpueDataset,
           label: "Quantity",
           borderColor: "#3e95cd",
-          fill: false
+          fill: false,
+          lineTension: 0.2
         },
         {
-          data: quality,
+          data: weightDataset,
           label: "Quality",
           borderColor: "#3f00cd",
-          fill: false
+          fill: false,
+          lineTension: 0.2
         }]
       }
     }); //end new chart()
