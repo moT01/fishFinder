@@ -394,7 +394,9 @@
 
 
 /* attribution and scale controls */
-
+.leaflet-control-attribution {
+  display: none; }
+  
 .leaflet-container .leaflet-control-attribution {
 	background: #fff;
 	background: rgba(255, 255, 255, 0.7);

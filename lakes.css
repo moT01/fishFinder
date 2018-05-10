@@ -37,6 +37,7 @@ body {
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
   font: 10px 'Lucida Console', 'Monaco', monospace; }
 
+/*this is the little cicle that has the number of lakes in the area*/
 .marker-cluster {
   display: -webkit-box;
   display: -moz-box;
@@ -46,31 +47,66 @@ body {
   justify-content: center;
   align-items: center;
   padding-top: 1px;
+  color: white;
   border-radius: 50%;
   width: 25px;
   max-width: 25px;
   height: 25px;
   max-height: 25px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-	background-color: rgba(255,255,255,0.8);
-  font: bold 10px 'Lucida Console', Monaco, monospace; }
-/*
-.center {
-    text-align: center; }
-.bold {
-    font-weight: bold; }
-.graph {
-    width: 200px;
-    max-width: 200px;
-    height: 120px;
-    max-height: 120px; }
-.average {
-    color: #999; }
-.quantity {
-    display: inline;
-    color: #00F; }
-.quality {
-    display: inline;
-    color: green; }
-.link {
-    text-decoration: none; }*/
+  box-shadow: 5px -1px 7px 1px rgba(0,0,0,0.4);
+	background-image: linear-gradient(rgb(70,152,208), rgb(25,117,200));
+  border: 1px solid rgb(56,130,182);
+  font: bold 10px 'Lucida Console', 'Monaco', monospace;
+  text-shadow: -1px 0 rgb(56,130,182), 0 1px rgb(56,130,182), 1px 0 rgb(56,130,182), 0 -1px rgb(56,130,182); }
+
+/*popup content area */
+.title {
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center; }
+
+table {
+  font: 10px 'Lucida Console', 'Monaco', monospace;
+  width: 100%;
+  margin: 10px 0; }
+
+.detail {
+  width: 50%;
+  font-size: 10px;
+  text-align: right; }
+
+.data {
+  width: 50%;
+  text-align: left; }
+
+/*loader */
+.loader {
+  text-align: center;
+  margin: 20px; }
+
+.loader div {
+  display: inline-block;
+  width: 3px;
+  margin: 2px;
+  height: 20px;
+  background-image: linear-gradient(rgb(70,152,208), rgb(25,117,200)); }
+
+.loader div:nth-child(1){ animation: load 1s ease-in-out        infinite; }
+.loader div:nth-child(2){ animation: load 1s ease-in-out  150ms infinite; }
+.loader div:nth-child(3){ animation: load 1s ease-in-out  300ms infinite; }
+.loader div:nth-child(4){ animation: load 1s ease-in-out  450ms infinite; }
+.loader div:nth-child(5){ animation: load 1s ease-in-out  600ms infinite; }
+
+@keyframes load{
+  0%, 100%{
+    -webkit-transform: scaleY(1);
+    -ms-transform: scaleY(1);
+    -o-transform: scaleY(1);
+    transform: scaleY(1); }
+
+  50%{
+    -webkit-transform: scaleY(1.8);
+    -ms-transform: scaleY(1.8);
+    -o-transform: scaleY(1.8);
+    transform: scaleY(1.8); }
+}

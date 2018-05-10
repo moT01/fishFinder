@@ -1,71 +1,73 @@
-var width = window.innerWidth-10,
-  height = window.innerHeight-10;
+//map layers
+const terrain = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' });
+const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png');
+//var satellite = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png');
+//var compass = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png');
 
-//document.getElementById('map').style.width = width + 'px';
-//document.getElementById('map').style.height = height + 'px';
-//document.getElementById('menu').style.left = width - 150 + 'px';
+//create map
+let map = L.map('map', {
+  center: [46.3924658,-93.5],
+  zoom: 6,
+  maxZoom: 20,
+  minZoom: 4,
+  zoomControl: false,
+  layers: [terrain, lakeContours],
+  maxBounds:([
+    [20, -135],
+    [60, -55]
+  ])
+});
 
+//create clusters
+let clusters = L.markerClusterGroup({
+  showCoverageOnHover: false
+});
+map.addLayer(clusters);
+
+//listener for change of species
 document.getElementById('speciesInput').addEventListener('change', function() {
   changeSpecies(this.value);
 });
 
-//map layers
-var land = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' });
-var lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png');
-//var satellite = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png');
-//var compass = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png');
-
-//map settings
-var map = L.map('map', {
-    center: [46.3924658,-93.5],
-    zoom: 6,
-    maxZoom: 20,
-    minZoom: 4,
-    zoomControl: false,
-    layers: [land, lakeContours],
-    maxBounds:([
-        [20, -135],
-        [60, -55]
-    ])
-});
-
-//cluster settings
-var clusters = L.markerClusterGroup({
-  showCoverageOnHover: false
-});
-
-map.addLayer(clusters);
-
-var lakeMarkers,
+//variables for changeSpecies()
+let lakeMarkers,
   speciesLayerShown = false;
 
+//this gets what lakes have the selected species and displays the markers
 function changeSpecies(species) {
   if(speciesLayerShown) {
     clusters.removeLayer(lakeMarkers);
   }
 
-  lakeMarkers = L.geoJson(allLakes,{
-    pointToLayer: function(feature,LatLng){
-      var marker = L.marker(LatLng);
+  //create layer for lake markers
+  lakeMarkers = L.geoJson(allLakes, {
+    pointToLayer: function(feature, LatLng){
+      let marker = L.marker(LatLng);
       marker.bindTooltip(feature.properties.name);
+      marker.bindPopup(popup);
+      marker.on('click', function() {
+        getSurveyData(this.feature.properties, species);
+      });
 
-      for(var i=0; i<feature.properties.fishSpecies.length; i++) {
-        if(feature.properties.fishSpecies[i] === species) {
+      //return a marker for any lake with selected species
+      let fishSpecies = feature.properties.fishSpecies;
+      for(let i=0; i<fishSpecies.length; i++) {
+        if(fishSpecies[i] === species) {
           return marker;
-        } else if (species == "bullhead") {
-          if (feature.properties.fishSpecies[i] === ("black bullhead" || "brown bullhead" || "yellow bullhead")) {
+        } else if (species === "bullhead") {
+          if (fishSpecies[i] === ("black bullhead" || "brown bullhead" || "yellow bullhead")) {
             return marker;
           }
-        } else if (species == "sunfish") {
-          if (feature.properties.fishSpecies[i] === ("hybrid sunfish" || "green sunfish" || "pumpkinseed" || "bluegill" || "sunfish")) {
+        } else if (species === "sunfish") {
+          if (fishSpecies[i] === ("hybrid sunfish" || "green sunfish" || "pumpkinseed" || "bluegill" || "sunfish")) {
             return marker;
           }
-        }else if (species == "crappie") {
-          if (feature.properties.fishSpecies[i] === ("black crappie" || "white crappie")) {
+        }else if (species === "crappie") {
+          if (fishSpecies[i] === ("black crappie" || "white crappie")) {
             return marker;
           }
         } else if (species == "carp") {
-          if (feature.properties.fishSpecies[i] === ("white sucker" || "common carp" || "bigmouth buffalo" || "shorthead redhorse" || "silver redhorse" || "golden redhorse" || "greater redhorse")) {
+          if (fishSpecies[i] === ("white sucker" || "common carp" || "bigmouth buffalo" || "shorthead redhorse" || "silver redhorse" || "golden redhorse" || "greater redhorse")) {
             return marker;
           }
         } else if (species === "all lakes") {
@@ -77,3 +79,157 @@ function changeSpecies(species) {
   clusters.addLayer(lakeMarkers);
   speciesLayerShown = true;
 }
+
+//create popup
+let popup = L.popup({
+  minWidth: 300,
+  autoClose: false
+});
+
+//variables for getSurveyData()
+let popupContent = '',
+  surveyDates = [],
+  cpueDataPoint,
+  weightDataPoint,
+  sortedSurveys = [],
+  sortedSummaries = [],
+  summaryResults = {},
+  summaryGearCount = 0,
+  gearTypesUsed,
+  quantity = [],
+  quality = [];
+
+//this gets the lake data from the dnr and displays it
+function getSurveyData(lakeProperties, species) {
+  popupContent = ``;
+  popupContent += `<div class="lakeName">${lakeProperties.name}</div>`;
+  popupContent += `<table class="table">`;
+  popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
+  popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
+  popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
+  popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
+  popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
+  popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
+  popupContent += `</table>`;
+  popupContent += `<div class="loader"><div></div><div></div><div></div><div></div><div></div></div>`;
+  popup.setContent(popupContent);
+
+  //fetch survey data for single lake
+  fetch(`https://maps2.dnr.state.mn.us/cgi-bin/lakefinder/detail.cgi?type=lake_survey&id=${lakeProperties.id}`)
+  .then(resp => resp.json())
+  .then(surveyData => {
+    popupContent = ``;
+    popupContent += `<div class="title">${lakeProperties.name}</div>`;
+    popupContent += `<table class="table">`;
+    popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
+    popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
+    popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
+    popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
+    popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
+    popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
+    popupContent += `</table>`;
+    popupContent += `<div class="title">Survey Data</div>`;
+    popupContent += `<canvas id="chart"></canvas>`;
+    popup.setContent(popupContent);
+
+    //sort the surveys by date
+    sortedSurveys = surveyData.result.surveys.sort((a, b) => {
+      return a.surveyDate > b.surveyDate;
+    });
+
+    //empty for surveys
+    surveyDates = [],
+    cpueDataPoint = 0,
+    weightDataPoint = 0,
+    quantity = [],
+    quality = [];
+
+    //for each survey (lake selected has several surveys)
+    sortedSurveys.forEach(survey => {
+
+      //create array of survey dates for the chart
+      surveyYear = survey.surveyDate.split('-')[0];
+      surveyDates.push(surveyYear);
+
+      //filter fishCatchSummaries to only include selected species
+      sortedSummaries = survey.fishCatchSummaries.filter(summary => {
+        return speciesCodes[summary.species] === species;
+      });
+
+      //empty for summaries
+      summaryResults = {};
+      summaryGearCount = 0;
+
+      sortedSummaries.forEach(summary => {
+        /*{ //example summaryResults object//
+        "Special Seining":[CPUE, averageWeight, gearCount],
+        "Standard Gill Nets":[CPUE, averageWeight, gearCount]
+        }*/
+
+        summaryGearCount += summary.gearCount;
+        summaryResults[summary.gear] = [];
+        summaryResults[summary.gear].push(summary.CPUE);
+        summaryResults[summary.gear].push(summary.averageWeight);
+        summaryResults[summary.gear].push(summary.gearCount);
+      }); //end sortedSummaries.forEach
+
+      /* //example data
+      averageResults = {
+        "MSK":{
+          'SS': {
+            'averageCPUE':	0.2,
+            'averageWeight':	3
+          },
+          {
+          'SGN'
+            'averageCPUE':	0.35,
+            'averageWeight':	7
+          }
+        }
+      }
+
+      summaryGearCount = 100
+
+      summaryResults = {
+        "Special Seining":[0.3, 4, 40],
+        "Standard Gill Nets":[0.4, 10, 60]
+      }*/
+
+      //to find percent from average
+      //  SS[1]/MSK.SS.averageWeight = percent from average -  4/3 = 1.333
+      //SGN[1]/MSK.SGN.averageWeight = percent from average - 10/7 = 1.428
+
+      //array of gear types used in this survey
+      gearTypesUsed = Object.keys(summaryResults);
+
+      gearTypesUsed.forEach(type => {
+        //this gets the weighted average deviation from the statewide averages (averageResults.json)
+        cpueDataPoint   += summaryResults[type][0]/averageResults[survey.fishCatchSummaries[0].species][type].averageCPUE   * (summaryResults[type][2]/summaryGearCount);
+        weightDataPoint += summaryResults[type][1]/averageResults[survey.fishCatchSummaries[0].species][type].averageWeight * (summaryResults[type][2]/summaryGearCount);
+      });
+
+      //push to array for chart data
+      quantity.push(cpueDataPoint);
+      quality.push(weightDataPoint);
+    }); //end of sortedSurveys.forEach
+
+    new Chart(document.getElementById('chart'), {
+      type: 'line',
+      data: {
+        labels: surveyDates,
+        datasets: [{
+          data: quantity,
+          label: "Quantity",
+          borderColor: "#3e95cd",
+          fill: false
+        },
+        {
+          data: quality,
+          label: "Quality",
+          borderColor: "#3f00cd",
+          fill: false
+        }]
+      }
+    }); //end new chart()
+  }); //end fetch.then
+} //end getSurveyData()
