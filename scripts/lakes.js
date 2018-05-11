@@ -216,23 +216,30 @@ function getSurveyData(lakeProperties, species) {
           labels: surveyDates,
           datasets: [{
             data: cpueDataset,
-            label: "Quantity",
-            borderColor: "#3e95cd",
+            label: 'Quantity',
+            borderColor: '#3e95cd',
             fill: false,
-            lineTension: 0.2
+            lineTension: 0.2,
+            pointRadius: 6,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#3e95cd'
           },
           {
             data: weightDataset,
-            label: "Quality",
-            borderColor: "#3f00cd",
+            label: 'Quality',
+            borderColor: '#3f00cd',
             fill: false,
-            lineTension: 0.2
+            lineTension: 0.2,
+            pointRadius: 6,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#3f00cd'
           }]
         },
         options: {
           scales: {
             yAxes: [{
               ticks: {
+                min: -100,
                 callback: function(value, index, values) {
                   if(value > 0) {
                     return '+' + value + '%';
@@ -241,8 +248,7 @@ function getSurveyData(lakeProperties, species) {
                   } else {
                     return value;
                   }
-                },
-                //min: -100
+                }
               }
             }]
           }
@@ -259,15 +265,13 @@ function getSurveyData(lakeProperties, species) {
             data: cpueDataset,
             label: "Quantity",
             borderColor: "#3e95cd",
-            fill: false,
-            lineTension: 0.2
+            fill: true,
           },
           {
             data: weightDataset,
             label: "Quality",
             borderColor: "#3f00cd",
-            fill: false,
-            lineTension: 0.2
+            fill: true,
           }]
         },
         options: {
