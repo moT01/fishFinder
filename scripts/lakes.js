@@ -82,18 +82,22 @@ function changeSpecies(species) {
 
 //create popup
 let popup = L.popup({
-  minWidth: 300,
+  minWidth: 400,
+  minHeight: 500,
   autoClose: false
 });
 
 //variables for getSurveyData()
-let popupContent = '',
+let speciesCapitalized,
+  popupContent = '',
   surveyDates = [],
-  sortedSurveys = [],
+  surveysByDate = [],
   sortedSummaries = [],
   summaryResults = {},
   summaryGearCount = 0,
   gearTypesUsed = [],
+  tempCPUE,
+  tempWeight,
   cpueDataPoint,
   weightDataPoint,
   cpueDataset = [],
@@ -101,12 +105,20 @@ let popupContent = '',
 
 //this gets the lake data from the dnr and displays it
 function getSurveyData(lakeProperties, species) {
+  speciesCapitalized = species.split(" ");
+  speciesCapitalized.forEach((word, index) => {
+    speciesCapitalized[index] = word[0].toUpperCase() + word.substr(1);
+  });
+  speciesCapitalized = speciesCapitalized.join(' ');
+
   popupContent = ``;
-  popupContent += `<div class="lakeName">${lakeProperties.name}</div>`;
-  popupContent += `<table class="table">`;
+  popupContent += `<div class="title">${lakeProperties.name}</div>`;
+  popupContent += `<table>`;
   popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
   popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
   popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
+  popupContent += `</table>`
+  popupContent += `<table>`
   popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
   popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
   popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
@@ -120,26 +132,24 @@ function getSurveyData(lakeProperties, species) {
   .then(surveyData => {
     popupContent = ``;
     popupContent += `<div class="title">${lakeProperties.name}</div>`;
-    popupContent += `<table class="table">`;
+    popupContent += `<table>`;
     popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
     popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
     popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
+    popupContent += `</table>`
+    popupContent += `<table>`
     popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
     popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
     popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
     popupContent += `</table>`;
-    popupContent += `<div class="title">Survey Data</div>`;
+    popupContent += `<div class="title">${speciesCapitalized} Data</div>`;
     popupContent += `<canvas id="chart"></canvas>`;
     popup.setContent(popupContent);
 
     //sort the surveys by date
-    sortedSurveys = surveyData.result.surveys.sort((a, b) => {
+    surveysByDate = surveyData.result.surveys.sort((a, b) => {
       return a.surveyDate > b.surveyDate;
     });
-
-    //filter out targeted surveys of not correct species?
-    //
-    //
 
     //empty for surveys
     surveyDates = [],
@@ -147,7 +157,7 @@ function getSurveyData(lakeProperties, species) {
     weightDataset = [];
 
     //for each survey (lake selected has several surveys)
-    sortedSurveys.forEach(survey => {
+    surveysByDate.forEach(survey => {
 
       //create array of survey dates for the chart
       surveyYear = survey.surveyDate.split('-')[0];
@@ -160,16 +170,11 @@ function getSurveyData(lakeProperties, species) {
 
       //empty for summaries
       summaryResults = {};
-      summaryGearCount = 0
+      summaryGearCount = 0,
       cpueDataPoint = 0,
       weightDataPoint = 0;
 
       sortedSummaries.forEach(summary => {
-        /*{ //example summaryResults object//
-        "Special Seining":[CPUE, averageWeight, gearCount],
-        "Standard Gill Nets":[CPUE, averageWeight, gearCount]
-        }*/
-
         summaryGearCount += summary.gearCount;
         summaryResults[summary.gear] = [];
         summaryResults[summary.gear].push(summary.CPUE);
@@ -177,79 +182,120 @@ function getSurveyData(lakeProperties, species) {
         summaryResults[summary.gear].push(summary.gearCount);
       }); //end sortedSummaries.forEach
 
-      /* //example data
-      averageResults = {
-        "MSK":{
-          'SS': {
-            'averageCPUE':	0.2,
-            'averageWeight':	3
-          },
-          {
-          'SGN'
-            'averageCPUE':	0.35,
-            'averageWeight':	7
-          }
-        }
-      }
-
-      summaryGearCount = 100
-
-      summaryResults = {
-        "Special Seining":[0.3, 4, 40],
-        "Standard Gill Nets":[0.4, 10, 60]
-      }
-
-      //to find percent from average for weight
-      //  SS[1]/MSK.SS.averageWeight = percent from average -  4/3 = 1.333
-      //SGN[1]/MSK.SGN.averageWeight = percent from average - 10/7 = 1.428
-
-      //1.333 * (40/100) = .5332
-      //1.426 * (60/100) = .8556
-
-      //add together = 1.3888, means 38.88% above average
-
-      //to find percent from average for cpueDataPoint
-      //  SS[0]/MSK.SS.averageCPUE = percent from average -  .3/.2 = 1.5
-      //SGN[0]/MSK.SGN.averageCPUE = percent from average - .4/.35 = 1.14286
-
-      //1.5     * (40/100) = .6
-      //1.14286 * (60/100) = .6857
-
-      //add together = 1.2857, means 28.57% above average*/
-
       //array of gear types used in this survey
       gearTypesUsed = Object.keys(summaryResults);
 
       gearTypesUsed.forEach(type => {
-        //this gets the weighted average deviation from the statewide averages (averageResults.json)
-        cpueDataPoint   += summaryResults[type][0]/averageResults[species][type].averageCPUE   * (summaryResults[type][2]/summaryGearCount);
-        weightDataPoint += summaryResults[type][1]/averageResults[species][type].averageWeight * (summaryResults[type][2]/summaryGearCount);
+        //find the deviation from statewide average for CPUE (index 0) and weight (index 1) - convert pounds to grams for weight
+        tempCPUE   =             summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
+        tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
+
+        //calculate weighted average using the number of gear used (more gear = more weight)
+        tempCPUE   *= (summaryResults[type][2]/summaryGearCount);
+        tempWeight *= (summaryResults[type][2]/summaryGearCount);
+
+        //accumulated weighted average
+        cpueDataPoint   += tempCPUE;
+        weightDataPoint += tempWeight;
       });
 
-      //turn data point into percentage, fix to two decimal places, push to array for chart data
-      cpueDataset.push(((cpueDataPoint-1)*100).toFixed(2));
-      weightDataset.push(((weightDataPoint-1)*100).toFixed(2));
+      //turn data points into percentage
+      cpueDataPoint = (cpueDataPoint-1) * 100;
+      weightDataPoint = (weightDataPoint-1) * 100;
+
+      //fix to two decimal places and push to array for chart data
+      cpueDataset.push(cpueDataPoint.toFixed(2));
+      weightDataset.push(weightDataPoint.toFixed(2));
     }); //end of sortedSurveys.forEach
 
-    new Chart(document.getElementById('chart'), {
-      type: 'line',
-      data: {
-        labels: surveyDates,
-        datasets: [{
-          data: cpueDataset,
-          label: "Quantity",
-          borderColor: "#3e95cd",
-          fill: false,
-          lineTension: 0.2
+    //(if > 1) => make a line chart
+    if(surveyDates.length > 1) {
+      new Chart(document.getElementById('chart'), {
+        type: 'line',
+        data: {
+          labels: surveyDates,
+          datasets: [{
+            data: cpueDataset,
+            label: "Quantity",
+            borderColor: "#3e95cd",
+            fill: false,
+            lineTension: 0.2
+          },
+          {
+            data: weightDataset,
+            label: "Quality",
+            borderColor: "#3f00cd",
+            fill: false,
+            lineTension: 0.2
+          }]
         },
-        {
-          data: weightDataset,
-          label: "Quality",
-          borderColor: "#3f00cd",
-          fill: false,
-          lineTension: 0.2
-        }]
-      }
-    }); //end new chart()
+        options: {
+          scales: {
+            yAxes: [{
+              ticks: {
+                callback: function(value, index, values) {
+                  if(value > 0) {
+                    return '+' + value + '%';
+                  } else if(value < 0) {
+                    return value + '%';
+                  } else {
+                    return value;
+                  }
+                },
+                //min: -100
+              }
+            }]
+          }
+        }
+      }); //end new chart()
+
+    //(if === 1) => make a bar chart
+    } else if (surveyDates.length === 1) {
+      new Chart(document.getElementById('chart'), {
+        type: 'bar',
+        data: {
+          labels: surveyDates,
+          datasets: [{
+            data: cpueDataset,
+            label: "Quantity",
+            borderColor: "#3e95cd",
+            fill: false,
+            lineTension: 0.2
+          },
+          {
+            data: weightDataset,
+            label: "Quality",
+            borderColor: "#3f00cd",
+            fill: false,
+            lineTension: 0.2
+          }]
+        },
+        options: {
+          scales: {
+            yAxes: [{
+              ticks: {
+                callback: function(value, index, values) {
+                  if(value > 0) {
+                    return '+' + value + '%';
+                  } else if(value < 0) {
+                    return value + '%';
+                  } else {
+                    return value;
+                  }
+                },
+                //min: -100
+              }
+            }]
+          }
+        }
+      }); //end new chart()
+
+
+
+
+    }
+
+
+
   }); //end fetch.then
 } //end getSurveyData()

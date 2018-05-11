@@ -1,6 +1,6 @@
 const speciesCodes = {
   "WAE":"walleye",
-  "SAR":"walleye",
+  "SAR":"sauger",
   "NOP":"northern pike",
   "MUE":"muskellunge",
   "TME":"tiger muskellunge",

@@ -67,7 +67,8 @@ body {
 
 table {
   font: 10px 'Lucida Console', 'Monaco', monospace;
-  width: 100%;
+  width: 50%;
+  display: inline-block;
   margin: 10px 0; }
 
 .detail {
