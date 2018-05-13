@@ -82,9 +82,11 @@ function changeSpecies(species) {
 
 //create popup
 let popup = L.popup({
-  minWidth: 400,
-  minHeight: 500,
-  autoClose: false
+  autoClose: false,
+  autoPanPadding: 5,
+  minWidth: 500,
+  minHeight: 500
+  //className: 'lakePopupWindow'
 });
 
 //variables for getSurveyData()
@@ -92,7 +94,7 @@ let speciesCapitalized,
   popupContent = '',
   surveyDates = [],
   surveysByDate = [],
-  sortedSummaries = [],
+  summariesWithSpecies = [],
   summaryResults = {},
   summaryGearCount = 0,
   gearTypesUsed = [],
@@ -164,7 +166,7 @@ function getSurveyData(lakeProperties, species) {
       surveyDates.push(surveyYear);
 
       //filter fishCatchSummaries to only include selected species
-      sortedSummaries = survey.fishCatchSummaries.filter(summary => {
+      summariesWithSpecies = survey.fishCatchSummaries.filter(summary => {
         return speciesCodes[summary.species] === species;
       });
 
@@ -174,7 +176,7 @@ function getSurveyData(lakeProperties, species) {
       cpueDataPoint = 0,
       weightDataPoint = 0;
 
-      sortedSummaries.forEach(summary => {
+      summariesWithSpecies.forEach(summary => {
         summaryGearCount += summary.gearCount;
         summaryResults[summary.gear] = [];
         summaryResults[summary.gear].push(summary.CPUE);
@@ -186,7 +188,7 @@ function getSurveyData(lakeProperties, species) {
       gearTypesUsed = Object.keys(summaryResults);
 
       gearTypesUsed.forEach(type => {
-        //find the deviation from statewide average for CPUE (index 0) and weight (index 1) - convert pounds to grams for weight
+        //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
         tempCPUE   =             summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
         tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
 
@@ -220,33 +222,50 @@ function getSurveyData(lakeProperties, species) {
             borderColor: '#3e95cd',
             fill: false,
             lineTension: 0.2,
-            pointRadius: 6,
+            pointRadius: 5,
             pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#3e95cd'
+            pointHoverBackgroundColor: '#3e95cd',
           },
           {
             data: weightDataset,
-            label: 'Quality',
+            label: 'Weight',
             borderColor: '#3f00cd',
             fill: false,
             lineTension: 0.2,
-            pointRadius: 6,
+            pointRadius: 5,
             pointHoverRadius: 6,
             pointHoverBackgroundColor: '#3f00cd'
           }]
         },
         options: {
+          tooltips: {
+            callbacks: {
+/*              title: function(tooltipItem, data) {
+                console.log('tooltip item');
+                console.log(tooltipItem);
+                console.log('data');
+                console.log(data);
+                return 'hello-1';
+              },*/
+              label: function(tooltipItem, data) {
+                return 'hello0';
+              }
+            }
+          },
           scales: {
             yAxes: [{
               ticks: {
                 min: -100,
+                beginAtZero: true,
                 callback: function(value, index, values) {
-                  if(value > 0) {
-                    return '+' + value + '%';
+                  if(value === 0) {
+                    return 'Statewide Average';
+                  } else if(value === -100) {
+                    return 'None Sampled';
+                  } else if(value > 0) {
+                    return '+' +value+ '%';
                   } else if(value < 0) {
                     return value + '%';
-                  } else {
-                    return value;
                   }
                 }
               }
@@ -264,13 +283,13 @@ function getSurveyData(lakeProperties, species) {
           datasets: [{
             data: cpueDataset,
             label: "Quantity",
-            borderColor: "#3e95cd",
+            backgroundColor: "#3e95cd",
             fill: true,
           },
           {
             data: weightDataset,
             label: "Quality",
-            borderColor: "#3f00cd",
+            backgroundColor: "#3f00cd",
             fill: true,
           }]
         },
@@ -278,16 +297,18 @@ function getSurveyData(lakeProperties, species) {
           scales: {
             yAxes: [{
               ticks: {
+                beginAtZero: true,
                 callback: function(value, index, values) {
-                  if(value > 0) {
-                    return '+' + value + '%';
+                  if(value === 0) {
+                    return 'Statewide Average';
+                  } else if(value === -100) {
+                    return 'None Sampled';
+                  } else if(value > 0) {
+                    return '+' +value+ '%';
                   } else if(value < 0) {
                     return value + '%';
-                  } else {
-                    return value;
                   }
-                },
-                //min: -100
+                }
               }
             }]
           }
