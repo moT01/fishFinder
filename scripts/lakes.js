@@ -238,19 +238,19 @@ function getSurveyData(lakeProperties, species) {
           }]
         },
         options: {
-          tooltips: {
+          /*tooltips: {
             callbacks: {
-/*              title: function(tooltipItem, data) {
+              title: function(tooltipItem, data) {
                 console.log('tooltip item');
                 console.log(tooltipItem);
                 console.log('data');
                 console.log(data);
                 return 'hello-1';
-              },*/
+              },
               label: function(tooltipItem, data) {
                 return 'hello0';
               }
-            }
+            }*/
           },
           scales: {
             yAxes: [{
