@@ -250,8 +250,8 @@ function getSurveyData(lakeProperties, species) {
               label: function(tooltipItem, data) {
                 return 'hello0';
               }
-            }*/
-          },
+            }
+          },*/
           scales: {
             yAxes: [{
               ticks: {
