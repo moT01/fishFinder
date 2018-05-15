@@ -187,6 +187,7 @@ function getSurveyData(lakeProperties, species) {
       //array of gear types used in this survey
       gearTypesUsed = Object.keys(summaryResults);
 
+      //this calculates the deviation from average using the survey data and statewideAverages.js
       gearTypesUsed.forEach(type => {
         //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
         tempCPUE   =             summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
@@ -229,37 +230,60 @@ function getSurveyData(lakeProperties, species) {
           {
             data: weightDataset,
             label: 'Weight',
-            borderColor: '#3f00cd',
+            borderColor: '#c2d593',
             fill: false,
             lineTension: 0.2,
             pointRadius: 5,
             pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#3f00cd'
+            pointHoverBackgroundColor: '#c2d593'
           }]
         },
         options: {
-          /*tooltips: {
+          tooltips: {
             callbacks: {
               title: function(tooltipItem, data) {
-                console.log('tooltip item');
-                console.log(tooltipItem);
-                console.log('data');
-                console.log(data);
-                return 'hello-1';
+                return tooltipItem[0].xLabel +' Survey';
               },
               label: function(tooltipItem, data) {
-                return 'hello0';
+                if(tooltipItem.yLabel === -100) {
+                  return 'No fish sampled in this survey';
+                } else if(tooltipItem.yLabel < 0) {
+                  //dataset 0 for CPUE
+                  if(tooltipItem.datasetIndex === 0) {
+                    return Math.abs(tooltipItem.yLabel) + '% below average catch rate';
+                  //dataset 1 for weight
+                  } else {
+                    return Math.abs(tooltipItem.yLabel) + '% below average weight';
+                  }
+                } else if(tooltipItem.yLabel === 0) {
+                  if(tooltipItem.datasetIndex === 0) {
+                    return 'catch rate in this survey was average';
+                  } else {
+                    return 'weight in this survey was average';
+                  }
+                } else {
+                  if(tooltipItem.datasetIndex === 0) {
+                    return tooltipItem.yLabel + '% above average catch rate';
+                  } else {
+                    return tooltipItem.yLabel + '% above average weight';
+                  }
+                }
               }
             }
-          },*/
+          },
           scales: {
             yAxes: [{
+              gridLines: {
+                borderDash: [12, 2],
+                zeroLineWidth: 1,
+                zeroLineColor: 'black'
+              },
               ticks: {
                 min: -100,
                 beginAtZero: true,
                 callback: function(value, index, values) {
                   if(value === 0) {
-                    return 'Statewide Average';
+                    return 'Average';
                   } else if(value === -100) {
                     return 'None Sampled';
                   } else if(value > 0) {
@@ -269,12 +293,22 @@ function getSurveyData(lakeProperties, species) {
                   }
                 }
               }
+            }],
+            xAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Survey Year',
+                fontStyle: 'bold'
+              },
+              gridLines: {
+                borderDash: [2, 6],
+              }
             }]
           }
         }
       }); //end new chart()
 
-    //(if === 1) => make a bar chart
+    //(if 1) => make a bar chart
     } else if (surveyDates.length === 1) {
       new Chart(document.getElementById('chart'), {
         type: 'bar',
@@ -288,8 +322,8 @@ function getSurveyData(lakeProperties, species) {
           },
           {
             data: weightDataset,
-            label: "Quality",
-            backgroundColor: "#3f00cd",
+            label: "Weight",
+            backgroundColor: "#c2d593",
             fill: true,
           }]
         },
