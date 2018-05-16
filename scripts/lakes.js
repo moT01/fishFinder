@@ -1,3 +1,11 @@
+var testExp = new RegExp('Android|webOS|iPhone|iPad|' +
+  'BlackBerry|Windows Phone|' +
+  'Opera Mini|IEMobile|Mobile','i');
+
+if (testExp.test(navigator.userAgent)) {
+  alert('mobile');
+}
+
 //map layers
 const terrain = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' });
 const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png');
@@ -8,7 +16,7 @@ const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/l
 let map = L.map('map', {
   center: [46.3924658,-93.5],
   zoom: 6,
-  maxZoom: 20,
+  maxZoom: 18,
   minZoom: 4,
   zoomControl: false,
   layers: [terrain, lakeContours],
