@@ -82,6 +82,7 @@ function changeSpecies(species) {
 
 //create popup
 let popup = L.popup({
+  keepInView: true,
   autoClose: false,
   autoPanPadding: 5,
   minWidth: 500,
@@ -134,16 +135,16 @@ function getSurveyData(lakeProperties, species) {
   .then(surveyData => {
     popupContent = ``;
     popupContent += `<div class="title">${lakeProperties.name}</div>`;
-    popupContent += `<table>`;
+    popupContent += `<table class="tableInPopup">`;
     popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
     popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
     popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
     popupContent += `</table>`
-    popupContent += `<table>`
+    popupContent += `<table class="tableInPopup">`
     popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
     popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
     popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
-    popupContent += `</table>`;
+    popupContent += `</table><hr class="hrInPopup"><br>`;
     popupContent += `<div class="title">${speciesCapitalized} Data</div>`;
     popupContent += `<canvas id="chart"></canvas>`;
     popup.setContent(popupContent);
@@ -219,11 +220,13 @@ function getSurveyData(lakeProperties, species) {
           labels: surveyDates,
           datasets: [{
             data: cpueDataset,
-            label: 'Quantity',
+            label: 'Catch Rate',
             borderColor: '#3e95cd',
+            backgroundColor: '#fff',
             fill: false,
             lineTension: 0.2,
             pointRadius: 5,
+            pointBorderWidth: 2,
             pointHoverRadius: 6,
             pointHoverBackgroundColor: '#3e95cd',
           },
@@ -231,14 +234,21 @@ function getSurveyData(lakeProperties, species) {
             data: weightDataset,
             label: 'Weight',
             borderColor: '#c2d593',
+            backgroundColor: '#fff',
             fill: false,
             lineTension: 0.2,
             pointRadius: 5,
+            pointBorderWidth: 2,
             pointHoverRadius: 6,
             pointHoverBackgroundColor: '#c2d593'
           }]
         },
         options: {
+          layout: {
+            padding: {
+              top: 10
+            }
+          },
           tooltips: {
             callbacks: {
               title: function(tooltipItem, data) {
@@ -246,26 +256,26 @@ function getSurveyData(lakeProperties, species) {
               },
               label: function(tooltipItem, data) {
                 if(tooltipItem.yLabel === -100) {
-                  return 'No fish sampled in this survey';
+                  return 'No fish sampled';
                 } else if(tooltipItem.yLabel < 0) {
                   //dataset 0 for CPUE
                   if(tooltipItem.datasetIndex === 0) {
-                    return Math.abs(tooltipItem.yLabel) + '% below average catch rate';
+                    return 'catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
                   //dataset 1 for weight
                   } else {
-                    return Math.abs(tooltipItem.yLabel) + '% below average weight';
+                    return 'weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
                   }
                 } else if(tooltipItem.yLabel === 0) {
                   if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate in this survey was average';
+                    return 'catch rate: average';
                   } else {
-                    return 'weight in this survey was average';
+                    return 'weight: average';
                   }
                 } else {
                   if(tooltipItem.datasetIndex === 0) {
-                    return tooltipItem.yLabel + '% above average catch rate';
+                    return 'catch rate: ' + tooltipItem.yLabel + '% above average';
                   } else {
-                    return tooltipItem.yLabel + '% above average weight';
+                    return 'weight: ' + tooltipItem.yLabel + '% above average ';
                   }
                 }
               }
@@ -273,19 +283,26 @@ function getSurveyData(lakeProperties, species) {
           },
           scales: {
             yAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Fish Sampled',
+                fontStyle: 'bold'
+              },
               gridLines: {
                 borderDash: [12, 2],
                 zeroLineWidth: 1,
                 zeroLineColor: 'black'
               },
               ticks: {
+                fontSize: 10,
+                fontFamily: "'Lucida Console', 'Monaco', monospace",
                 min: -100,
                 beginAtZero: true,
                 callback: function(value, index, values) {
                   if(value === 0) {
                     return 'Average';
                   } else if(value === -100) {
-                    return 'None Sampled';
+                    return 'None';
                   } else if(value > 0) {
                     return '+' +value+ '%';
                   } else if(value < 0) {
@@ -302,6 +319,10 @@ function getSurveyData(lakeProperties, species) {
               },
               gridLines: {
                 borderDash: [2, 6],
+              },
+              ticks: {
+                fontSize: 10,
+                fontFamily: "'Lucida Console', 'Monaco', monospace"
               }
             }]
           }
@@ -316,7 +337,7 @@ function getSurveyData(lakeProperties, species) {
           labels: surveyDates,
           datasets: [{
             data: cpueDataset,
-            label: "Quantity",
+            label: "Catch Rate",
             backgroundColor: "#3e95cd",
             fill: true,
           },
@@ -328,15 +349,58 @@ function getSurveyData(lakeProperties, species) {
           }]
         },
         options: {
+          tooltips: {
+            callbacks: {
+              title: function(tooltipItem, data) {
+                return tooltipItem[0].xLabel +' Survey';
+              },
+              label: function(tooltipItem, data) {
+                if(tooltipItem.yLabel === -100) {
+                  return 'No fish sampled';
+                } else if(tooltipItem.yLabel < 0) {
+                  //dataset 0 for CPUE
+                  if(tooltipItem.datasetIndex === 0) {
+                    return 'catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
+                  //dataset 1 for weight
+                  } else {
+                    return 'weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
+                  }
+                } else if(tooltipItem.yLabel === 0) {
+                  if(tooltipItem.datasetIndex === 0) {
+                    return 'catch rate: average';
+                  } else {
+                    return 'weight: average';
+                  }
+                } else {
+                  if(tooltipItem.datasetIndex === 0) {
+                    return 'catch rate: ' + tooltipItem.yLabel + '% above average';
+                  } else {
+                    return 'weight: ' + tooltipItem.yLabel + '% above average ';
+                  }
+                }
+              }
+            }
+          },
           scales: {
             yAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Fish Sampled',
+                fontStyle: 'bold'
+              },
+              gridLines: {
+                zeroLineWidth: 1,
+                zeroLineColor: 'black'
+              },
               ticks: {
+                fontSize: 10,
+                fontFamily: "'Lucida Console', 'Monaco', monospace",
                 beginAtZero: true,
                 callback: function(value, index, values) {
                   if(value === 0) {
-                    return 'Statewide Average';
+                    return 'Average';
                   } else if(value === -100) {
-                    return 'None Sampled';
+                    return 'None';
                   } else if(value > 0) {
                     return '+' +value+ '%';
                   } else if(value < 0) {
@@ -344,17 +408,21 @@ function getSurveyData(lakeProperties, species) {
                   }
                 }
               }
+            }],
+            xAxes: [{
+              scaleLabel: {
+                display: true,
+                labelString: 'Survey Year',
+                fontStyle: 'bold'
+              },
+              ticks: {
+                fontSize: 10,
+                fontFamily: "'Lucida Console', 'Monaco', monospace"
+              }
             }]
           }
         }
       }); //end new chart()
-
-
-
-
     }
-
-
-
   }); //end fetch.then
 } //end getSurveyData()

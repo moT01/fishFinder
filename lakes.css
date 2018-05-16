@@ -59,25 +59,13 @@ body {
   font: bold 10px 'Lucida Console', 'Monaco', monospace;
   text-shadow: -1px 0 rgb(56,130,182), 0 1px rgb(56,130,182), 1px 0 rgb(56,130,182), 0 -1px rgb(56,130,182); }
 
-/*popup window
-.leaflet-popup {
-  width: 80vw;
-  height: 80vh;
-}
-
-.leaflet-popup-content-wrapper {
-  width: 80vw;
-  height: 80vh;
-}*/
-
-
 /*popup content area */
 .title {
   font-size: 14px;
   font-weight: bold;
   text-align: center; }
 
-table {
+.tableInPopup {
   font: 10px 'Lucida Console', 'Monaco', monospace;
   width: 50%;
   display: inline-block;
@@ -91,6 +79,14 @@ table {
 .data {
   width: 50%;
   text-align: left; }
+
+.hrInPopup {
+  border: 0;
+  height: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
 
 /*loader */
 .loader {
