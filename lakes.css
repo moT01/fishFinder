@@ -59,52 +59,61 @@ body {
   font: bold 10px 'Lucida Console', 'Monaco', monospace;
   text-shadow: -1px 0 rgb(56,130,182), 0 1px rgb(56,130,182), 1px 0 rgb(56,130,182), 0 -1px rgb(56,130,182); }
 
-/*popup content area */
-.title {
+/*popup content*/
+.popupTitle {
   font-size: 14px;
   font-weight: bold;
   text-align: center; }
 
-.tableInPopup {
+.popupTable {
   font: 10px 'Lucida Console', 'Monaco', monospace;
   width: 50%;
   display: inline-block;
   margin: 10px 0; }
 
-.detail {
+.popupDetail {
   width: 50%;
   font-size: 10px;
   text-align: right; }
 
-.data {
+.popupInfo {
   width: 50%;
   text-align: left; }
 
-.hrInPopup {
+.popupHR {
   border: 0;
   height: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.popupFlex {
+  display: flex;
+  justify-content: space-around;
+  font: 10px 'Lucida Console', 'Monaco', monospace;
+}
 
-/*loader */
-.loader {
+.popupLink {
+  text-decoration: none;
+}
+
+/*popup loader*/
+.popupLoader {
   text-align: center;
   margin: 20px; }
 
-.loader div {
+.popupLoader div {
   display: inline-block;
   width: 3px;
   margin: 2px;
   height: 20px;
   background-image: linear-gradient(rgb(70,152,208), rgb(25,117,200)); }
 
-.loader div:nth-child(1){ animation: load 1s ease-in-out        infinite; }
-.loader div:nth-child(2){ animation: load 1s ease-in-out  150ms infinite; }
-.loader div:nth-child(3){ animation: load 1s ease-in-out  300ms infinite; }
-.loader div:nth-child(4){ animation: load 1s ease-in-out  450ms infinite; }
-.loader div:nth-child(5){ animation: load 1s ease-in-out  600ms infinite; }
+.popupLoader div:nth-child(1){ animation: load 1s ease-in-out        infinite; }
+.popupLoader div:nth-child(2){ animation: load 1s ease-in-out  150ms infinite; }
+.popupLoader div:nth-child(3){ animation: load 1s ease-in-out  300ms infinite; }
+.popupLoader div:nth-child(4){ animation: load 1s ease-in-out  450ms infinite; }
+.popupLoader div:nth-child(5){ animation: load 1s ease-in-out  600ms infinite; }
 
 @keyframes load{
   0%, 100%{

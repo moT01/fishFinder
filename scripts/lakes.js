@@ -1,10 +1,10 @@
-//map layers
+//map layers (leaflet js)
 const terrain = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' });
 const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png');
 //var satellite = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png');
 //var compass = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png');
 
-//create map
+//create map (leaflet js)
 let map = L.map('map', {
   //zoomAnimation: false,
   fadeAnimation: false,
@@ -22,11 +22,18 @@ let map = L.map('map', {
   ])
 });
 
-//create clusters
+//create clusters (leaflet js)
 let clusters = L.markerClusterGroup({
   showCoverageOnHover: false
 });
 map.addLayer(clusters);
+
+//create popup (leaflet js)
+let popup = L.popup({
+  autoClose: false,
+  minWidth: 600,
+  minHeight: 800
+});
 
 //listener for change of species
 document.getElementById('speciesInput').addEventListener('change', function() {
@@ -43,7 +50,7 @@ function changeSpecies(species) {
     clusters.removeLayer(lakeMarkers);
   }
 
-  //create layer for lake markers
+  //create layer for lake markers (leaflet js)
   lakeMarkers = L.geoJson(allLakes, {
     pointToLayer: function(feature, LatLng){
       let marker = L.marker(LatLng);
@@ -82,13 +89,108 @@ function changeSpecies(species) {
   speciesLayerShown = true;
 }
 
-//create popup
-let popup = L.popup({
-  //keepInView: true,
-  autoClose: false,
-  minWidth: 600,
-  minHeight: 800
-});
+//function for setting popup base content
+function setPopupBaseContent(lakeProperties) {
+  popupContent = ``;
+  popupContent += `<div class="popupTitle">${lakeProperties.name}</div>`;
+  popupContent += `<table class="popupTable">`;
+  popupContent +=   `<tr><td class="popupDetail">Acres         </td><td>:</td><td class="popupInfo">${lakeProperties.acres}               </td></tr>`;
+  popupContent +=   `<tr><td class="popupDetail">Littoral Acres</td><td>:</td><td class="popupInfo">${lakeProperties.littoralAcres}       </td></tr>`;
+  popupContent +=   `<tr><td class="popupDetail">Shoreline     </td><td>:</td><td class="popupInfo">${lakeProperties.shorelineMiles} miles</td></tr>`;
+  popupContent += `</table>`
+  popupContent += `<table class="popupTable">`
+  popupContent +=   `<tr><td class="popupDetail">Max Depth     </td><td>:</td><td class="popupInfo">${lakeProperties.maxDepth}&#39;    </td></tr>`;
+  popupContent +=   `<tr><td class="popupDetail">Average Depth </td><td>:</td><td class="popupInfo">${lakeProperties.averageDepth}&#39;</td></tr>`;
+  popupContent +=   `<tr><td class="popupDetail">Water Clarity </td><td>:</td><td class="popupInfo">${lakeProperties.waterClarity}&#39;</td></tr>`;
+  popupContent += `</table>`;
+}
+
+//variable for chart settings (chart js)
+const chartOptions = {
+  layout: {
+    padding: {
+      top: 15,
+      bottom: 15
+    }
+  },
+  tooltips: {
+    callbacks: {
+      title: function(tooltipItem, data) {
+        return tooltipItem[0].xLabel +' Survey';
+      },
+      label: function(tooltipItem, data) {
+        if(tooltipItem.yLabel === -100) {
+          return 'No fish sampled';
+        } else if(tooltipItem.yLabel < 0) {
+          //dataset 0 for CPUE
+          if(tooltipItem.datasetIndex === 0) {
+            return 'catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
+          //dataset 1 for weight
+          } else {
+            return 'weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
+          }
+        } else if(tooltipItem.yLabel === 0) {
+          if(tooltipItem.datasetIndex === 0) {
+            return 'catch rate: average';
+          } else {
+            return 'weight: average';
+          }
+        } else {
+          if(tooltipItem.datasetIndex === 0) {
+            return 'catch rate: ' + tooltipItem.yLabel + '% above average';
+          } else {
+            return 'weight: ' + tooltipItem.yLabel + '% above average ';
+          }
+        }
+      }
+    }
+  },
+  scales: {
+    yAxes: [{
+      scaleLabel: {
+        display: true,
+        labelString: 'Fish Sampled',
+        fontStyle: 'bold'
+      },
+      gridLines: {
+        borderDash: [12, 2],
+        zeroLineWidth: 1,
+        zeroLineColor: 'black'
+      },
+      ticks: {
+        fontSize: 10,
+        fontFamily: "'Lucida Console', 'Monaco', monospace",
+        beginAtZero: true,
+        min: -100,
+        callback: function(value, index, values) {
+          if(value === 0) {
+            return 'Average';
+          } else if(value === -100) {
+            return 'None';
+          } else if(value > 0) {
+            return '+' +value+ '%';
+          } else if(value < 0) {
+            return value + '%';
+          }
+        }
+      }
+    }],
+    xAxes: [{
+      scaleLabel: {
+        display: true,
+        labelString: 'Survey Year',
+        fontStyle: 'bold'
+      },
+      ticks: {
+        fontSize: 10,
+        fontFamily: "'Lucida Console', 'Monaco', monospace"
+      },
+      gridLines: {
+        borderDash: [2, 6],
+      },
+    }]
+  }
+}
 
 //variables for getSurveyData()
 let speciesCapitalized,
@@ -98,54 +200,39 @@ let speciesCapitalized,
   summariesWithSpecies = [],
   summaryResults = {},
   summaryGearCount = 0,
-  gearTypesUsed = [],
   tempCPUE,
   tempWeight,
   cpueDataPoint,
   weightDataPoint,
   cpueDataset = [],
-  weightDataset = [];
+  weightDataset = [],
+  shortestFish = 200,
+  longestFish = 0;
 
 //this gets the lake data from the dnr and displays it
 function getSurveyData(lakeProperties, species) {
-  speciesCapitalized = species.split(" ");
-  speciesCapitalized.forEach((word, index) => {
-    speciesCapitalized[index] = word[0].toUpperCase() + word.substr(1);
-  });
-  speciesCapitalized = speciesCapitalized.join(' ');
 
-  popupContent = ``;
-  popupContent += `<div class="title">${lakeProperties.name}</div>`;
-  popupContent += `<table>`;
-  popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
-  popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
-  popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
-  popupContent += `</table>`
-  popupContent += `<table>`
-  popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
-  popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
-  popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
-  popupContent += `</table>`;
-  popupContent += `<div class="loader"><div></div><div></div><div></div><div></div><div></div></div>`;
+  //set base popup content before the rest is loaded
+  setPopupBaseContent(lakeProperties);
+  popupContent += `<div class="popupLoader"><div></div><div></div><div></div><div></div><div></div></div>`;
   popup.setContent(popupContent);
 
   //fetch survey data for single lake
   fetch(`https://maps2.dnr.state.mn.us/cgi-bin/lakefinder/detail.cgi?type=lake_survey&id=${lakeProperties.id}`)
   .then(resp => resp.json())
   .then(surveyData => {
-    popupContent = ``;
-    popupContent += `<div class="title">${lakeProperties.name}</div>`;
-    popupContent += `<table class="tableInPopup">`;
-    popupContent +=   `<tr><td class="detail">Acres         </td><td>:</td><td class="data">${lakeProperties.acres}               </td></tr>`;
-    popupContent +=   `<tr><td class="detail">Littoral Acres</td><td>:</td><td class="data">${lakeProperties.littoralAcres}       </td></tr>`;
-    popupContent +=   `<tr><td class="detail">Shoreline     </td><td>:</td><td class="data">${lakeProperties.shorelineMiles} miles</td></tr>`;
-    popupContent += `</table>`
-    popupContent += `<table class="tableInPopup">`
-    popupContent +=   `<tr><td class="detail">Max Depth     </td><td>:</td><td class="data">${lakeProperties.maxDepth}&#39;       </td></tr>`;
-    popupContent +=   `<tr><td class="detail">Average Depth </td><td>:</td><td class="data">${lakeProperties.averageDepth}&#39;   </td></tr>`;
-    popupContent +=   `<tr><td class="detail">Water Clarity </td><td>:</td><td class="data">${lakeProperties.waterClarity}&#39;   </td></tr>`;
-    popupContent += `</table><hr class="hrInPopup"><br>`;
-    popupContent += `<div class="title">${speciesCapitalized} Data</div>`;
+
+    //capitalize the species for use in the popup
+    speciesCapitalized = species.split(" ");
+    speciesCapitalized.forEach((word, index) => {
+      speciesCapitalized[index] = word[0].toUpperCase() + word.substr(1);
+    });
+    speciesCapitalized = speciesCapitalized.join(' ');
+
+    //set popup content after data is loaded
+    setPopupBaseContent(lakeProperties);
+    popupContent += `<hr class="popupHR"><br>`;
+    popupContent += `<div class="popupTitle">${speciesCapitalized} Data</div>`;
     popupContent += `<canvas id="chart"></canvas>`;
     popup.setContent(popupContent);
 
@@ -157,10 +244,19 @@ function getSurveyData(lakeProperties, species) {
     //empty for surveys
     surveyDates = [],
     cpueDataset = [],
-    weightDataset = [];
+    weightDataset = [],
+    shortestCaught = 200,
+    longestCaught = 0;
 
     //for each survey (lake selected has several surveys)
     surveysByDate.forEach(survey => {
+      //this keeps track of the shortest and longest fish caught
+      Object.keys(survey.lengths).forEach(fishType => {
+        if(speciesCodes[fishType] === species) {
+          shortestCaught = survey.lengths[fishType].minimum_length < shortestCaught ? survey.lengths[fishType].minimum_length : shortestCaught;
+          longestCaught = survey.lengths[fishType].maximum_length > longestCaught ? survey.lengths[fishType].maximum_length : longestCaught;
+        }
+      });
 
       //create array of survey dates for the chart
       surveyYear = survey.surveyDate.split('-')[0];
@@ -183,13 +279,10 @@ function getSurveyData(lakeProperties, species) {
         summaryResults[summary.gear].push(summary.CPUE);
         summaryResults[summary.gear].push(summary.averageWeight);
         summaryResults[summary.gear].push(summary.gearCount);
-      }); //end sortedSummaries.forEach
-
-      //array of gear types used in this survey
-      gearTypesUsed = Object.keys(summaryResults);
+      });
 
       //this calculates the deviation from average using the survey data and statewideAverages.js
-      gearTypesUsed.forEach(type => {
+      Object.keys(summaryResults).forEach(type => {
         //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
         tempCPUE   =             summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
         tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
@@ -212,7 +305,17 @@ function getSurveyData(lakeProperties, species) {
       weightDataset.push(weightDataPoint.toFixed(2));
     }); //end of sortedSurveys.forEach
 
-    //(if > 1) => make a line chart
+    //add longest and shortest caught to popup setContent
+    if(shortestCaught < 200 && longestCaught > 0) {
+      popupContent += `<div class="popupFlex">`;
+      popupContent +=   `<div>Shortest Fish Sampled: ${shortestCaught}"</div>`;
+      popupContent +=   `<div>Longest Fish Sampled: ${longestCaught}"</div>`;
+      popupContent += `<a class="popupFlex popupLink" href="https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}" target="_blank">More Info</a>`;
+      popupContent += `</div>`;
+      popup.setContent(popupContent);
+    }
+
+    //(if > 1) => make a line chart (chart js)
     if(surveyDates.length > 1) {
       new Chart(document.getElementById('chart'), {
         type: 'line',
@@ -228,7 +331,7 @@ function getSurveyData(lakeProperties, species) {
             pointRadius: 5,
             pointBorderWidth: 2,
             pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#3e95cd',
+            pointHoverBackgroundColor: '#3e95cd'
           },
           {
             data: weightDataset,
@@ -243,93 +346,10 @@ function getSurveyData(lakeProperties, species) {
             pointHoverBackgroundColor: '#c2d593'
           }]
         },
-        options: {
-          layout: {
-            padding: {
-              top: 10
-            }
-          },
-          tooltips: {
-            callbacks: {
-              title: function(tooltipItem, data) {
-                return tooltipItem[0].xLabel +' Survey';
-              },
-              label: function(tooltipItem, data) {
-                if(tooltipItem.yLabel === -100) {
-                  return 'No fish sampled';
-                } else if(tooltipItem.yLabel < 0) {
-                  //dataset 0 for CPUE
-                  if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
-                  //dataset 1 for weight
-                  } else {
-                    return 'weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
-                  }
-                } else if(tooltipItem.yLabel === 0) {
-                  if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate: average';
-                  } else {
-                    return 'weight: average';
-                  }
-                } else {
-                  if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate: ' + tooltipItem.yLabel + '% above average';
-                  } else {
-                    return 'weight: ' + tooltipItem.yLabel + '% above average ';
-                  }
-                }
-              }
-            }
-          },
-          scales: {
-            yAxes: [{
-              scaleLabel: {
-                display: true,
-                labelString: 'Fish Sampled',
-                fontStyle: 'bold'
-              },
-              gridLines: {
-                borderDash: [12, 2],
-                zeroLineWidth: 1,
-                zeroLineColor: 'black'
-              },
-              ticks: {
-                fontSize: 10,
-                fontFamily: "'Lucida Console', 'Monaco', monospace",
-                min: -100,
-                beginAtZero: true,
-                callback: function(value, index, values) {
-                  if(value === 0) {
-                    return 'Average';
-                  } else if(value === -100) {
-                    return 'None';
-                  } else if(value > 0) {
-                    return '+' +value+ '%';
-                  } else if(value < 0) {
-                    return value + '%';
-                  }
-                }
-              }
-            }],
-            xAxes: [{
-              scaleLabel: {
-                display: true,
-                labelString: 'Survey Year',
-                fontStyle: 'bold'
-              },
-              gridLines: {
-                borderDash: [2, 6],
-              },
-              ticks: {
-                fontSize: 10,
-                fontFamily: "'Lucida Console', 'Monaco', monospace"
-              }
-            }]
-          }
-        }
+        options: chartOptions
       }); //end new chart()
 
-    //(if 1) => make a bar chart
+    //(if 1) => make a bar chart (chart js)
     } else if (surveyDates.length === 1) {
       new Chart(document.getElementById('chart'), {
         type: 'bar',
@@ -348,80 +368,7 @@ function getSurveyData(lakeProperties, species) {
             fill: true,
           }]
         },
-        options: {
-          tooltips: {
-            callbacks: {
-              title: function(tooltipItem, data) {
-                return tooltipItem[0].xLabel +' Survey';
-              },
-              label: function(tooltipItem, data) {
-                if(tooltipItem.yLabel === -100) {
-                  return 'No fish sampled';
-                } else if(tooltipItem.yLabel < 0) {
-                  //dataset 0 for CPUE
-                  if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
-                  //dataset 1 for weight
-                  } else {
-                    return 'weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
-                  }
-                } else if(tooltipItem.yLabel === 0) {
-                  if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate: average';
-                  } else {
-                    return 'weight: average';
-                  }
-                } else {
-                  if(tooltipItem.datasetIndex === 0) {
-                    return 'catch rate: ' + tooltipItem.yLabel + '% above average';
-                  } else {
-                    return 'weight: ' + tooltipItem.yLabel + '% above average ';
-                  }
-                }
-              }
-            }
-          },
-          scales: {
-            yAxes: [{
-              scaleLabel: {
-                display: true,
-                labelString: 'Fish Sampled',
-                fontStyle: 'bold'
-              },
-              gridLines: {
-                zeroLineWidth: 1,
-                zeroLineColor: 'black'
-              },
-              ticks: {
-                fontSize: 10,
-                fontFamily: "'Lucida Console', 'Monaco', monospace",
-                beginAtZero: true,
-                callback: function(value, index, values) {
-                  if(value === 0) {
-                    return 'Average';
-                  } else if(value === -100) {
-                    return 'None';
-                  } else if(value > 0) {
-                    return '+' +value+ '%';
-                  } else if(value < 0) {
-                    return value + '%';
-                  }
-                }
-              }
-            }],
-            xAxes: [{
-              scaleLabel: {
-                display: true,
-                labelString: 'Survey Year',
-                fontStyle: 'bold'
-              },
-              ticks: {
-                fontSize: 10,
-                fontFamily: "'Lucida Console', 'Monaco', monospace"
-              }
-            }]
-          }
-        }
+        options: chartOptions
       }); //end new chart()
     }
   }); //end fetch.then
