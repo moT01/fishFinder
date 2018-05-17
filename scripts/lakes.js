@@ -6,9 +6,10 @@ const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/l
 
 //create map
 let map = L.map('map', {
-  zoomAnimation: false,
+  //zoomAnimation: false,
   fadeAnimation: false,
   markerZoomAnimation: false,
+  autoPanPaddingTopLeft: 20,
   center: [46.3924658,-93.5],
   zoom: 6,
   maxZoom: 18,
@@ -73,8 +74,6 @@ function changeSpecies(species) {
           if (fishSpecies[i] === ("white sucker" || "common carp" || "bigmouth buffalo" || "shorthead redhorse" || "silver redhorse" || "golden redhorse" || "greater redhorse")) {
             return marker;
           }
-        } else if (species === "all lakes") {
-          return marker;
         }
       }
     }
@@ -85,12 +84,10 @@ function changeSpecies(species) {
 
 //create popup
 let popup = L.popup({
-  keepInView: true,
+  //keepInView: true,
   autoClose: false,
-  autoPanPadding: 5,
-  minWidth: 500,
-  minHeight: 500
-  //className: 'lakePopupWindow'
+  minWidth: 600,
+  minHeight: 800
 });
 
 //variables for getSurveyData()
