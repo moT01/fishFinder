@@ -1,8 +1,8 @@
 //map layers (leaflet js)
 const terrain = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' });
 const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png');
-//var satellite = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png');
-//var compass = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png');
+//const satellite = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png');
+//const compass = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png');
 
 //create map (leaflet js)
 let map = L.map('map', {
@@ -51,7 +51,7 @@ function changeSpecies(species) {
   }
 
   //create layer for lake markers (leaflet js)
-  lakeMarkers = L.geoJson(allLakes, {
+  lakeMarkers = L.geoJson(allLakesGeojson, {
     pointToLayer: function(feature, LatLng){
       let marker = L.marker(LatLng);
       marker.bindTooltip(feature.properties.name);
@@ -90,20 +90,217 @@ function changeSpecies(species) {
 }
 
 //function for setting popup base content
-function setPopupBaseContent(lakeProperties) {
+function setPopupHeaderContent(lakeProperties) {
   popupContent = ``;
   popupContent += `<div class="popupTitle">${lakeProperties.name}</div>`;
-  popupContent += `<table class="popupTable">`;
-  popupContent +=   `<tr><td class="popupDetail">Acres         </td><td>:</td><td class="popupInfo">${lakeProperties.acres}               </td></tr>`;
-  popupContent +=   `<tr><td class="popupDetail">Littoral Acres</td><td>:</td><td class="popupInfo">${lakeProperties.littoralAcres}       </td></tr>`;
-  popupContent +=   `<tr><td class="popupDetail">Shoreline     </td><td>:</td><td class="popupInfo">${lakeProperties.shorelineMiles} miles</td></tr>`;
-  popupContent += `</table>`
-  popupContent += `<table class="popupTable">`
-  popupContent +=   `<tr><td class="popupDetail">Max Depth     </td><td>:</td><td class="popupInfo">${lakeProperties.maxDepth}&#39;    </td></tr>`;
-  popupContent +=   `<tr><td class="popupDetail">Average Depth </td><td>:</td><td class="popupInfo">${lakeProperties.averageDepth}&#39;</td></tr>`;
-  popupContent +=   `<tr><td class="popupDetail">Water Clarity </td><td>:</td><td class="popupInfo">${lakeProperties.waterClarity}&#39;</td></tr>`;
-  popupContent += `</table>`;
 }
+
+function targetedSurveyIncludesSpecies(survey, species) {
+  for (let i=0; i<survey.fishCatchSummaries.length; i++) {
+    if(speciesCodes[survey.fishCatchSummaries[i].species] === species) {
+      return true;
+    }
+  }
+  return false;
+}
+
+//variables for getSurveyData()
+let speciesCapitalized,
+  popupContent = '',
+  surveyDates = [],
+  surveysByDate = [],
+  summariesWithSpecies = [],
+  summaryResults = {},
+  summaryGearCount = 0,
+  tempCPUE,
+  tempWeight,
+  cpueDataPoint,
+  weightDataPoint,
+  cpueDataset = [],
+  weightDataset = [],
+  longestFish = 0;
+
+//this gets the lake data from the dnr and displays it
+function getSurveyData(lakeProperties, species) {
+  //set base popup content before the rest is loaded
+  setPopupHeaderContent(lakeProperties);
+  popupContent += `<div class="popupLoader"><div></div><div></div><div></div><div></div><div></div></div>`;
+  popup.setContent(popupContent);
+
+  //fetch survey data for single lake
+  fetch(`https://maps2.dnr.state.mn.us/cgi-bin/lakefinder/detail.cgi?type=lake_survey&id=${lakeProperties.id}`)
+  .then(resp => resp.json())
+  .then(surveyData => {
+
+    //capitalize the species for use in the popup
+    speciesCapitalized = species.split(" ");
+    speciesCapitalized.forEach((word, index) => {
+      speciesCapitalized[index] = word[0].toUpperCase() + word.substr(1);
+    });
+    speciesCapitalized = speciesCapitalized.join(' ');
+
+    //set popup content after data is loaded
+    setPopupHeaderContent(lakeProperties);
+    popupContent += `<table class="popupTable">`;
+    popupContent +=   `<tr><td class="popupDetail">Acres         </td><td>:</td><td class="popupInfo">${surveyData.result.areaAcres}               </td></tr>`;
+    popupContent +=   `<tr><td class="popupDetail">Shoreline     </td><td>:</td><td class="popupInfo">${surveyData.result.shoreLengthMiles} miles</td></tr>`;
+    popupContent += `</table>`
+    popupContent += `<table class="popupTable">`
+    popupContent +=   `<tr><td class="popupDetail">Max Depth     </td><td>:</td><td class="popupInfo">${surveyData.result.maxDepthFeet}&#39;    </td></tr>`;
+    popupContent +=   `<tr><td class="popupDetail">Water Clarity </td><td>:</td><td class="popupInfo">${surveyData.result.averageWaterClarity}&#39;</td></tr>`;
+    popupContent += `</table>`;
+    popupContent += `<hr class="popupHR"><br>`;
+    popupContent += `<div class="popupTitle">${speciesCapitalized} Data</div>`;
+    popupContent += `<canvas id="chart"></canvas>`;
+    popup.setContent(popupContent);
+
+    //sort the surveys by date
+    surveysByDate = surveyData.result.surveys.sort((a, b) => {
+      return a.surveyDate > b.surveyDate;
+    });
+
+    //empty for surveys
+    surveyDates = [],
+    cpueDataset = [],
+    weightDataset = [],
+    longestCaught = 0;
+
+    //for each survey (lake selected has several surveys)
+    surveysByDate.forEach(survey => {
+      //if not a targeted survey || a targeted survey that includes the species (so we don't display those targeted surveys without the species)
+      if(survey.surveyType !== "Targeted Survey" || (survey.surveyType === "Targeted Survey" && targetedSurveyIncludesSpecies(survey, species)) ) {
+        //this keeps track of the shortest and longest fish caught
+        Object.keys(survey.lengths).forEach(fishType => {
+          if(speciesCodes[fishType] === species) {
+            longestCaught = survey.lengths[fishType].maximum_length > longestCaught ? survey.lengths[fishType].maximum_length : longestCaught;
+          }
+        });
+
+        //create array of survey dates for the chart
+        surveyYear = survey.surveyDate.split('-')[0];
+        surveyDates.push(surveyYear);
+
+        //filter fishCatchSummaries to only include selected species
+        summariesWithSpecies = survey.fishCatchSummaries.filter(summary => {
+          return speciesCodes[summary.species] === species;
+        });
+
+        //empty for summaries
+        summaryResults = {};
+        summaryGearCount = 0,
+        cpueDataPoint = 0,
+        weightDataPoint = 0;
+
+        summariesWithSpecies.forEach(summary => {
+          summaryGearCount += summary.gearCount;
+          summaryResults[summary.gear] = [];
+          summaryResults[summary.gear].push(summary.CPUE);
+          summaryResults[summary.gear].push(summary.averageWeight);
+          summaryResults[summary.gear].push(summary.gearCount);
+        });
+
+        //this calculates the deviation from average using the survey data and statewideAverages.js
+        Object.keys(summaryResults).forEach(type => {
+          //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
+          tempCPUE = summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
+
+          if(summaryResults[type][1]/statewideAverages[species][type].averageWeight > 0) {
+            tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
+          } else {
+            tempWeight = 0;
+          }
+
+          //calculate weighted average using the number of gear used (more gear = more weight)
+          tempCPUE   *= (summaryResults[type][2]/summaryGearCount);
+          tempWeight *= (summaryResults[type][2]/summaryGearCount);
+
+          //accumulated weighted average
+          cpueDataPoint   += tempCPUE;
+          weightDataPoint += tempWeight;
+        });
+
+        //turn data points into percentage
+        cpueDataPoint = (cpueDataPoint-1) * 100;
+        weightDataPoint = (weightDataPoint-1) * 100;
+
+        //fix to two decimal places and push to array for chart data
+        cpueDataset.push(cpueDataPoint.toFixed(2));
+        weightDataset.push(weightDataPoint.toFixed(2));
+      }
+    }); //end of sortedSurveys.forEach
+
+    //add longest and shortest caught to popup setContent
+    if(longestCaught > 0) {
+      popupContent += `<div class="popupFlex">`;
+      popupContent +=   `<div>Longest Fish Sampled: ${longestCaught}"</div>`;
+      popupContent +=   `<a class="popupFlex popupLink" href="https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}" target="_blank">More Info</a>`;
+      popupContent += `</div>`;
+      popup.setContent(popupContent);
+    } else {
+      popupContent += `<div class="popupFlex">`;
+      popupContent +=   `<a class="popupFlex popupLink" href="https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}" target="_blank">More Info</a>`;
+      popupContent += `</div>`;
+      popup.setContent(popupContent);
+    }
+
+    //(if > 1) => make a line chart (chart js)
+    if(surveyDates.length > 1) {
+      new Chart(document.getElementById('chart'), {
+        type: 'line',
+        data: {
+          labels: surveyDates,
+          datasets: [{
+            data: cpueDataset,
+            label: 'Catch Rate',
+            borderColor: '#3e95cd',
+            backgroundColor: '#fff',
+            fill: false,
+            lineTension: 0.2,
+            pointRadius: 5,
+            pointBorderWidth: 2,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#3e95cd'
+          },
+          {
+            data: weightDataset,
+            label: 'Weight',
+            borderColor: '#c2d593',
+            backgroundColor: '#fff',
+            fill: false,
+            lineTension: 0.2,
+            pointRadius: 5,
+            pointBorderWidth: 2,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#c2d593'
+          }]
+        },
+        options: chartOptions
+      }); //end new chart()
+
+    //(if 1) => make a bar chart (chart js)
+    } else if (surveyDates.length === 1) {
+      new Chart(document.getElementById('chart'), {
+        type: 'bar',
+        data: {
+          labels: surveyDates,
+          datasets: [{
+            data: cpueDataset,
+            label: "Catch Rate",
+            backgroundColor: "#3e95cd",
+            fill: true,
+          },
+          {
+            data: weightDataset,
+            label: "Weight",
+            backgroundColor: "#c2d593",
+            fill: true,
+          }]
+        },
+        options: chartOptions
+      }); //end new chart()
+    }
+  }); //end fetch.then
+} //end getSurveyData()
 
 //variable for chart settings (chart js)
 const chartOptions = {
@@ -191,185 +388,3 @@ const chartOptions = {
     }]
   }
 }
-
-//variables for getSurveyData()
-let speciesCapitalized,
-  popupContent = '',
-  surveyDates = [],
-  surveysByDate = [],
-  summariesWithSpecies = [],
-  summaryResults = {},
-  summaryGearCount = 0,
-  tempCPUE,
-  tempWeight,
-  cpueDataPoint,
-  weightDataPoint,
-  cpueDataset = [],
-  weightDataset = [],
-  shortestFish = 200,
-  longestFish = 0;
-
-//this gets the lake data from the dnr and displays it
-function getSurveyData(lakeProperties, species) {
-
-  //set base popup content before the rest is loaded
-  setPopupBaseContent(lakeProperties);
-  popupContent += `<div class="popupLoader"><div></div><div></div><div></div><div></div><div></div></div>`;
-  popup.setContent(popupContent);
-
-  //fetch survey data for single lake
-  fetch(`https://maps2.dnr.state.mn.us/cgi-bin/lakefinder/detail.cgi?type=lake_survey&id=${lakeProperties.id}`)
-  .then(resp => resp.json())
-  .then(surveyData => {
-
-    //capitalize the species for use in the popup
-    speciesCapitalized = species.split(" ");
-    speciesCapitalized.forEach((word, index) => {
-      speciesCapitalized[index] = word[0].toUpperCase() + word.substr(1);
-    });
-    speciesCapitalized = speciesCapitalized.join(' ');
-
-    //set popup content after data is loaded
-    setPopupBaseContent(lakeProperties);
-    popupContent += `<hr class="popupHR"><br>`;
-    popupContent += `<div class="popupTitle">${speciesCapitalized} Data</div>`;
-    popupContent += `<canvas id="chart"></canvas>`;
-    popup.setContent(popupContent);
-
-    //sort the surveys by date
-    surveysByDate = surveyData.result.surveys.sort((a, b) => {
-      return a.surveyDate > b.surveyDate;
-    });
-
-    //empty for surveys
-    surveyDates = [],
-    cpueDataset = [],
-    weightDataset = [],
-    shortestCaught = 200,
-    longestCaught = 0;
-
-    //for each survey (lake selected has several surveys)
-    surveysByDate.forEach(survey => {
-      //this keeps track of the shortest and longest fish caught
-      Object.keys(survey.lengths).forEach(fishType => {
-        if(speciesCodes[fishType] === species) {
-          shortestCaught = survey.lengths[fishType].minimum_length < shortestCaught ? survey.lengths[fishType].minimum_length : shortestCaught;
-          longestCaught = survey.lengths[fishType].maximum_length > longestCaught ? survey.lengths[fishType].maximum_length : longestCaught;
-        }
-      });
-
-      //create array of survey dates for the chart
-      surveyYear = survey.surveyDate.split('-')[0];
-      surveyDates.push(surveyYear);
-
-      //filter fishCatchSummaries to only include selected species
-      summariesWithSpecies = survey.fishCatchSummaries.filter(summary => {
-        return speciesCodes[summary.species] === species;
-      });
-
-      //empty for summaries
-      summaryResults = {};
-      summaryGearCount = 0,
-      cpueDataPoint = 0,
-      weightDataPoint = 0;
-
-      summariesWithSpecies.forEach(summary => {
-        summaryGearCount += summary.gearCount;
-        summaryResults[summary.gear] = [];
-        summaryResults[summary.gear].push(summary.CPUE);
-        summaryResults[summary.gear].push(summary.averageWeight);
-        summaryResults[summary.gear].push(summary.gearCount);
-      });
-
-      //this calculates the deviation from average using the survey data and statewideAverages.js
-      Object.keys(summaryResults).forEach(type => {
-        //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
-        tempCPUE   =             summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
-        tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
-
-        //calculate weighted average using the number of gear used (more gear = more weight)
-        tempCPUE   *= (summaryResults[type][2]/summaryGearCount);
-        tempWeight *= (summaryResults[type][2]/summaryGearCount);
-
-        //accumulated weighted average
-        cpueDataPoint   += tempCPUE;
-        weightDataPoint += tempWeight;
-      });
-
-      //turn data points into percentage
-      cpueDataPoint = (cpueDataPoint-1) * 100;
-      weightDataPoint = (weightDataPoint-1) * 100;
-
-      //fix to two decimal places and push to array for chart data
-      cpueDataset.push(cpueDataPoint.toFixed(2));
-      weightDataset.push(weightDataPoint.toFixed(2));
-    }); //end of sortedSurveys.forEach
-
-    //add longest and shortest caught to popup setContent
-    if(shortestCaught < 200 && longestCaught > 0) {
-      popupContent += `<div class="popupFlex">`;
-      popupContent +=   `<div>Shortest Fish Sampled: ${shortestCaught}"</div>`;
-      popupContent +=   `<div>Longest Fish Sampled: ${longestCaught}"</div>`;
-      popupContent += `<a class="popupFlex popupLink" href="https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}" target="_blank">More Info</a>`;
-      popupContent += `</div>`;
-      popup.setContent(popupContent);
-    }
-
-    //(if > 1) => make a line chart (chart js)
-    if(surveyDates.length > 1) {
-      new Chart(document.getElementById('chart'), {
-        type: 'line',
-        data: {
-          labels: surveyDates,
-          datasets: [{
-            data: cpueDataset,
-            label: 'Catch Rate',
-            borderColor: '#3e95cd',
-            backgroundColor: '#fff',
-            fill: false,
-            lineTension: 0.2,
-            pointRadius: 5,
-            pointBorderWidth: 2,
-            pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#3e95cd'
-          },
-          {
-            data: weightDataset,
-            label: 'Weight',
-            borderColor: '#c2d593',
-            backgroundColor: '#fff',
-            fill: false,
-            lineTension: 0.2,
-            pointRadius: 5,
-            pointBorderWidth: 2,
-            pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#c2d593'
-          }]
-        },
-        options: chartOptions
-      }); //end new chart()
-
-    //(if 1) => make a bar chart (chart js)
-    } else if (surveyDates.length === 1) {
-      new Chart(document.getElementById('chart'), {
-        type: 'bar',
-        data: {
-          labels: surveyDates,
-          datasets: [{
-            data: cpueDataset,
-            label: "Catch Rate",
-            backgroundColor: "#3e95cd",
-            fill: true,
-          },
-          {
-            data: weightDataset,
-            label: "Weight",
-            backgroundColor: "#c2d593",
-            fill: true,
-          }]
-        },
-        options: chartOptions
-      }); //end new chart()
-    }
-  }); //end fetch.then
-} //end getSurveyData()
