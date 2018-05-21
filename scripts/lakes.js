@@ -1,8 +1,10 @@
 //map layers (leaflet js)
-const terrain = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' });
-const lakeContours = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png');
-//const satellite = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png');
-//const compass = L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png');
+const mapLayers = {
+  lakeContours: L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png'),
+  terrain: L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' }),
+  satellite: L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/img_fsa15aim4@mn_google/{z}/{x}/{y}.png'),
+  compass: L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/compass@mn_google/{z}/{x}/{y}.png')
+};
 
 //create map (leaflet js)
 let map = L.map('map', {
@@ -15,7 +17,7 @@ let map = L.map('map', {
   maxZoom: 18,
   minZoom: 4,
   zoomControl: false,
-  layers: [terrain, lakeContours],
+  layers: [mapLayers.terrain, mapLayers.lakeContours],
   maxBounds:([
     [20, -135],
     [60, -55]
@@ -39,6 +41,20 @@ let popup = L.popup({
 document.getElementById('speciesInput').addEventListener('change', function() {
   changeSpecies(this.value);
 });
+
+let currentLayer = mapLayers.terrain;
+
+//listener for change of map layers
+document.querySelectorAll(".mapLayer").forEach(view => {
+  view.addEventListener('click', function() {
+    if(mapLayers[this.id] !== currentLayer) {
+      map.removeLayer(currentLayer);
+      map.addLayer(mapLayers[this.id]);
+      currentLayer = mapLayers[this.id];
+    }
+  });
+});
+
 
 //variables for changeSpecies()
 let lakeMarkers,
