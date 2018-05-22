@@ -32,6 +32,7 @@ map.addLayer(clusters);
 
 //create popup (leaflet js)
 let popup = L.popup({
+  autoPanPadding: L.point(200, 200),
   autoClose: false,
   minWidth: 600,
   minHeight: 800
