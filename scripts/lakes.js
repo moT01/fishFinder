@@ -1,3 +1,6 @@
+console.log(window.innerWidth);
+
+
 //map layers (leaflet js)
 const mapLayers = {
   lakeContours: L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png'),
@@ -35,8 +38,8 @@ let popup = L.popup({
   autoPanPaddingTopLeft: L.point(50, 180),
   autoPanPaddingBottomRight: L.point(50, 50),
   autoClose: false,
-  minWidth: 300,
-  minHeight: 400
+  minWidth: 600,
+  minHeight: 600
 });
 
 //listener for change of species
@@ -219,7 +222,11 @@ function getSurveyData(lakeProperties, species) {
             summaryGearCount += summary.gearCount;
             summaryResults[summary.gear] = [];
             summaryResults[summary.gear].push(summary.CPUE);
-            summaryResults[summary.gear].push(summary.averageWeight);
+            if(summary.averageWeight > 0) {
+              summaryResults[summary.gear].push(summary.averageWeight);
+            } else {
+              summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageWeight);
+            }
             summaryResults[summary.gear].push(summary.gearCount);
           });
 
