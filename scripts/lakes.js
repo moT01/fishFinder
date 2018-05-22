@@ -35,8 +35,8 @@ let popup = L.popup({
   autoPanPaddingTopLeft: L.point(50, 180),
   autoPanPaddingBottomRight: L.point(50, 50),
   autoClose: false,
-  minWidth: 600,
-  minHeight: 800
+  minWidth: 300,
+  minHeight: 400
 });
 
 //listener for change of species
