@@ -42,15 +42,16 @@ document.getElementById('speciesInput').addEventListener('change', function() {
   changeSpecies(this.value);
 });
 
-let currentLayer = mapLayers.terrain;
-
 //listener for change of map layers
 document.querySelectorAll(".mapLayer").forEach(view => {
   view.addEventListener('click', function() {
-    if(mapLayers[this.id] !== currentLayer) {
-      map.removeLayer(currentLayer);
-      map.addLayer(mapLayers[this.id]);
-      currentLayer = mapLayers[this.id];
+    if(!map.hasLayer(mapLayers[this.title])) {
+      map.eachLayer(layer => {
+        map.removeLayer(layer);
+      });
+      map.addLayer(mapLayers[this.title]);
+      map.addLayer(mapLayers.lakeContours);
+      map.addLayer(clusters);
     }
   });
 });
@@ -183,65 +184,68 @@ function getSurveyData(lakeProperties, species) {
 
     //for each survey (lake selected has several surveys)
     surveysByDate.forEach(survey => {
-      //if not a targeted survey || a targeted survey that includes the species (so we don't display those targeted surveys without the species)
-      if(survey.surveyType !== "Targeted Survey" || (survey.surveyType === "Targeted Survey" && targetedSurveyIncludesSpecies(survey, species)) ) {
-        //this keeps track of the shortest and longest fish caught
-        Object.keys(survey.lengths).forEach(fishType => {
-          if(speciesCodes[fishType] === species) {
-            longestCaught = survey.lengths[fishType].maximum_length > longestCaught ? survey.lengths[fishType].maximum_length : longestCaught;
-          }
-        });
+      //fishCatchSummaries.length > 0 (to rule out summaries without data)
+      if(survey.fishCatchSummaries.length > 0) {
+        //if not a targeted survey || a targeted survey that includes the species (so we don't display those targeted surveys without the species)
+        if(survey.surveyType !== "Targeted Survey" || (survey.surveyType === "Targeted Survey" && targetedSurveyIncludesSpecies(survey, species))) {
+          //this keeps track of the shortest and longest fish caught
+          Object.keys(survey.lengths).forEach(fishType => {
+            if(speciesCodes[fishType] === species) {
+              longestCaught = survey.lengths[fishType].maximum_length > longestCaught ? survey.lengths[fishType].maximum_length : longestCaught;
+            }
+          });
 
-        //create array of survey dates for the chart
-        surveyYear = survey.surveyDate.split('-')[0];
-        surveyDates.push(surveyYear);
+          //create array of survey dates for the chart
+          surveyYear = survey.surveyDate.split('-')[0];
+          surveyDates.push(surveyYear);
 
-        //filter fishCatchSummaries to only include selected species
-        summariesWithSpecies = survey.fishCatchSummaries.filter(summary => {
-          return speciesCodes[summary.species] === species;
-        });
+          //filter fishCatchSummaries to only include selected species
+          summariesWithSpecies = survey.fishCatchSummaries.filter(summary => {
+            return speciesCodes[summary.species] === species;
+          });
 
-        //empty for summaries
-        summaryResults = {};
-        summaryGearCount = 0,
-        cpueDataPoint = 0,
-        weightDataPoint = 0;
+          //empty for summaries
+          summaryResults = {};
+          summaryGearCount = 0,
+          cpueDataPoint = 0,
+          weightDataPoint = 0;
 
-        summariesWithSpecies.forEach(summary => {
-          summaryGearCount += summary.gearCount;
-          summaryResults[summary.gear] = [];
-          summaryResults[summary.gear].push(summary.CPUE);
-          summaryResults[summary.gear].push(summary.averageWeight);
-          summaryResults[summary.gear].push(summary.gearCount);
-        });
+          summariesWithSpecies.forEach(summary => {
+            summaryGearCount += summary.gearCount;
+            summaryResults[summary.gear] = [];
+            summaryResults[summary.gear].push(summary.CPUE);
+            summaryResults[summary.gear].push(summary.averageWeight);
+            summaryResults[summary.gear].push(summary.gearCount);
+          });
 
-        //this calculates the deviation from average using the survey data and statewideAverages.js
-        Object.keys(summaryResults).forEach(type => {
-          //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
-          tempCPUE = summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
+          //this calculates the deviation from average using the survey data and statewideAverages.js
+          Object.keys(summaryResults).forEach(type => {
+            //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
+            tempCPUE = summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
 
-          if(summaryResults[type][1]/statewideAverages[species][type].averageWeight > 0) {
-            tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
-          } else {
-            tempWeight = 0;
-          }
+            if(summaryResults[type][1]/statewideAverages[species][type].averageWeight > 0) {
+              tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
+            } else {
+              tempWeight = 0;
+            }
 
-          //calculate weighted average using the number of gear used (more gear = more weight)
-          tempCPUE   *= (summaryResults[type][2]/summaryGearCount);
-          tempWeight *= (summaryResults[type][2]/summaryGearCount);
+            //calculate weighted average using the number of gear used (more gear = more weight)
+            tempCPUE   *= (summaryResults[type][2]/summaryGearCount);
+            tempWeight *= (summaryResults[type][2]/summaryGearCount);
 
-          //accumulated weighted average
-          cpueDataPoint   += tempCPUE;
-          weightDataPoint += tempWeight;
-        });
+            //accumulated weighted average
+            cpueDataPoint   += tempCPUE;
+            weightDataPoint += tempWeight;
+          });
 
-        //turn data points into percentage
-        cpueDataPoint = (cpueDataPoint-1) * 100;
-        weightDataPoint = (weightDataPoint-1) * 100;
+          //turn data points into percentage
+          cpueDataPoint = (cpueDataPoint-1) * 100;
+          weightDataPoint = (weightDataPoint-1) * 100;
 
-        //fix to two decimal places and push to array for chart data
-        cpueDataset.push(cpueDataPoint.toFixed(2));
-        weightDataset.push(weightDataPoint.toFixed(2));
+          //fix to two decimal places and push to array for chart data
+          cpueDataset.push(cpueDataPoint.toFixed(2));
+          weightDataset.push(weightDataPoint.toFixed(2));
+        }
       }
     }); //end of sortedSurveys.forEach
 

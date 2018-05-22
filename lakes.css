@@ -22,9 +22,10 @@ body {
 
 .mapLayer {
   display: inline-block;
-  width: 3vw;
-  height: 3vw;
+  width: 4vw;
+  height: 4vw;
   background-color: blue;
+  cursor: pointer;
 }
 
 #menu {
