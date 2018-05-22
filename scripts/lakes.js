@@ -43,8 +43,8 @@ document.getElementById('speciesInput').addEventListener('change', function() {
 });
 
 //listener for change of map layers
-document.querySelectorAll(".mapLayer").forEach(view => {
-  view.addEventListener('click', function() {
+document.querySelectorAll(".mapLayer").forEach(layer => {
+  layer.addEventListener('click', function() {
     if(!map.hasLayer(mapLayers[this.title])) {
       map.eachLayer(layer => {
         map.removeLayer(layer);
