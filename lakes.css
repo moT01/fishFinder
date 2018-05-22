@@ -79,6 +79,7 @@ body {
 
 /*popup content*/
 .popupTitle {
+  margin: 5px 0;
   font-size: 14px;
   font-weight: bold;
   text-align: center; }

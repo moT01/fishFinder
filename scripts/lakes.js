@@ -32,7 +32,7 @@ map.addLayer(clusters);
 
 //create popup (leaflet js)
 let popup = L.popup({
-  autoPanPadding: L.point(200, 200),
+  autoPanPadding: L.point(150, 200),
   autoClose: false,
   minWidth: 600,
   minHeight: 800
@@ -110,7 +110,10 @@ function changeSpecies(species) {
 //function for setting popup base content
 function setPopupHeaderContent(lakeProperties) {
   popupContent = ``;
-  popupContent += `<div class="popupTitle">${lakeProperties.name}</div>`;
+  popupContent += `<div class="popupTitle">${lakeProperties.name}</div>`
+  popupContent += `<div class="popupFlex">`
+  popupContent +=   `<div>${lakeProperties.county} county near ${lakeProperties.nearesTown}</div>`;
+  popupContent += `</div>`;
 }
 
 function targetedSurveyIncludesSpecies(survey, species) {
@@ -327,7 +330,7 @@ function getSurveyData(lakeProperties, species) {
 const chartOptions = {
   layout: {
     padding: {
-      top: 15,
+      top: 0,
       bottom: 15
     }
   },
