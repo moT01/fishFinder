@@ -8,9 +8,10 @@ const mapLayers = {
 
 //create map (leaflet js)
 let map = L.map('map', {
+  closePopupOnClick: false,
   zoomAnimation: false,
   fadeAnimation: false,
-  markerZoomAnimation: false,
+  //markerZoomAnimation: false,
   autoPanPaddingTopLeft: 20,
   center: [46.3924658,-93.5],
   zoom: 6,
@@ -49,8 +50,6 @@ let popup = L.popup({
   autoPan: false,
   minWidth: 642,
   minHeight: 463,
-  keepInView: true,
-  autoClose: false
 });
 
 //listener for change of species
