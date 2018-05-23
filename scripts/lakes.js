@@ -8,8 +8,9 @@ const mapLayers = {
 
 //create map (leaflet js)
 let map = L.map('map', {
+  zoomSnap: 0,
   closePopupOnClick: false,
-  //zoomAnimation: false,
+  zoomAnimation: false,
   fadeAnimation: false,
   markerZoomAnimation: false,
   autoPanPaddingTopLeft: 20,
@@ -27,7 +28,7 @@ let map = L.map('map', {
 
 //create clusters (leaflet js)
 let clusters = L.markerClusterGroup({
-  showCoverageOnHover: false
+  showCoverageOnHover: true
 });
 map.addLayer(clusters);
 
@@ -50,7 +51,8 @@ let popup = L.popup({
   autoPan: false,
   minWidth: 642,
   minHeight: 463,
-  closeOnEscapeKey: false
+  closeOnEscapeKey: false,
+  keepInView: true
 });
 
 //listener for change of species
@@ -219,8 +221,21 @@ function getSurveyData(lakeProperties, species) {
           summariesWithSpecies.forEach(summary => {
             summaryGearCount += summary.gearCount;
             summaryResults[summary.gear] = [];
-            summaryResults[summary.gear].push(summary.CPUE);
-            summaryResults[summary.gear].push(summary.averageWeight);
+
+            //this test puts an average CPUE for ones that have infity in the data
+            if(summary.CPUE > 0) {
+              summaryResults[summary.gear].push(summary.CPUE);
+            } else {
+              summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageCPUE);
+            }
+
+            //this test puts in an average weight for times the weight was not recorded
+            if(summary.averageWeight > 0) {
+              summaryResults[summary.gear].push(summary.averageWeight);
+            } else {
+              summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageWeight*0.0022046);
+            }
+
             summaryResults[summary.gear].push(summary.gearCount);
           });
 
@@ -229,6 +244,7 @@ function getSurveyData(lakeProperties, species) {
             //find the deviation from statewide average for CPUE (index 0) and weight (index 1) + convert pounds to grams for weight
             tempCPUE = summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
 
+            //this must be for ruling out weights with zeros or N/A or something like that
             if(summaryResults[type][1]/statewideAverages[species][type].averageWeight > 0) {
               tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
             } else {

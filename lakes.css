@@ -79,7 +79,12 @@ body {
 
 /*popup content*/
 #popupContent {
-  min-width: 643;
+  /*position: fixed;
+  top: 100px;
+  left: 100px;
+  z-index: 1000;
+  background-color: rgba(255,255,255, 0.9);
+  */min-width: 643;
   min-height: 463;
 }
 
