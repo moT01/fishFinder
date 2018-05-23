@@ -78,30 +78,35 @@ body {
   text-shadow: -1px 0 rgb(56,130,182), 0 1px rgb(56,130,182), 1px 0 rgb(56,130,182), 0 -1px rgb(56,130,182); }
 
 /*popup content*/
+#popupContent {
+  min-width: 643;
+  min-height: 463;
+}
+
+#popupCounty {
+  margin: 8px 0;
+}
+
+#popupAfterLoad {
+  display: none;
+}
+
 .popupTitle {
-  margin: 5px 0;
   font-size: 14px;
   font-weight: bold;
   text-align: center; }
 
-.popupTable {
-  font: 10px 'Lucida Console', 'Monaco', monospace;
-  width: 50%;
-  display: inline-block;
-  margin: 10px 0; }
-
 .popupDetail {
-  width: 50%;
   font-size: 10px;
   text-align: right; }
 
 .popupInfo {
-  width: 50%;
   text-align: left; }
 
 .popupHR {
   border: 0;
   height: 0;
+  margin: 13px 0;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
@@ -112,27 +117,27 @@ body {
   font: 10px 'Lucida Console', 'Monaco', monospace;
 }
 
-.popupLink {
+#popupLink {
   text-decoration: none;
 }
 
 /*popup loader*/
-.popupLoader {
+#popupLoader {
   text-align: center;
   margin: 20px; }
 
-.popupLoader div {
+#popupLoader div {
   display: inline-block;
   width: 3px;
   margin: 2px;
   height: 20px;
   background-image: linear-gradient(rgb(70,152,208), rgb(25,117,200)); }
 
-.popupLoader div:nth-child(1){ animation: load 1s ease-in-out        infinite; }
-.popupLoader div:nth-child(2){ animation: load 1s ease-in-out  150ms infinite; }
-.popupLoader div:nth-child(3){ animation: load 1s ease-in-out  300ms infinite; }
-.popupLoader div:nth-child(4){ animation: load 1s ease-in-out  450ms infinite; }
-.popupLoader div:nth-child(5){ animation: load 1s ease-in-out  600ms infinite; }
+#popupLoader div:nth-child(1){ animation: load 1s ease-in-out        infinite; }
+#popupLoader div:nth-child(2){ animation: load 1s ease-in-out  150ms infinite; }
+#popupLoader div:nth-child(3){ animation: load 1s ease-in-out  300ms infinite; }
+#popupLoader div:nth-child(4){ animation: load 1s ease-in-out  450ms infinite; }
+#popupLoader div:nth-child(5){ animation: load 1s ease-in-out  600ms infinite; }
 
 @keyframes load{
   0%, 100%{

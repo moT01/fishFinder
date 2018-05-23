@@ -59,6 +59,50 @@
       <br/>Lake data courtesy of the <b><i><a href="http://www.dnr.state.mn.us/index.html">Minnesota DNR</a></i></b></div>
     </div>
 
+
+    <div id="popupContent">
+      <div class="popupTitle" id="popupLake"></div>
+      <div class="popupFlex">
+        <div id="popupCounty"></div>
+      </div>
+      <div id="popupLoader"><div></div><div></div><div></div><div></div><div></div></div>
+      <div id="popupAfterLoad">
+        <div class="popupFlex">
+          <table>
+            <tr>
+              <td class="popupDetail">Acres</td>
+              <td>:</td>
+              <td class="popupInfo" id="popupAcres"></td>
+            </tr>
+            <tr>
+              <td class="popupDetail">Shoreline</td>
+              <td>:</td>
+              <td class="popupInfo" id="popupShoreline"></td>
+            </tr>
+          </table>
+          <table>
+            <tr>
+              <td class="popupDetail">Max Depth</td>
+              <td>:</td>
+              <td class="popupInfo" id="popupDepth"></td>
+            </tr>
+            <tr>
+              <td class="popupDetail">Water Clarity</td>
+              <td>:</td>
+              <td class="popupInfo" id="popupClarity"></td>
+            </tr>
+          </table>
+        </div>
+        <hr class="popupHR">
+        <div class="popupTitle" id="popupSpecies"></div>
+        <canvas id="chart"></canvas>
+        <div class="popupFlex">
+          <div id="popupLongest"></div>
+          <a id="popupLink" href="#" target="_blank">More Info</a>
+        </div>
+      </div>
+    </div>
+
     <!--downloaded copies-->
     <script type="text/javascript" src="./leaflet/leaflet1.3.1.js"></script>
     <script type="text/javascript" src="./leaflet/markerCluster1.3.0.js"></script>

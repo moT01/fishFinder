@@ -1,6 +1,3 @@
-console.log(window.innerWidth);
-
-
 //map layers (leaflet js)
 const mapLayers = {
   lakeContours: L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png'),
@@ -11,7 +8,7 @@ const mapLayers = {
 
 //create map (leaflet js)
 let map = L.map('map', {
-  //zoomAnimation: false,
+  zoomAnimation: false,
   fadeAnimation: false,
   markerZoomAnimation: false,
   autoPanPaddingTopLeft: 20,
@@ -33,13 +30,27 @@ let clusters = L.markerClusterGroup({
 });
 map.addLayer(clusters);
 
+//variables for elements used in popup
+const popupContent = document.getElementById('popupContent'),
+  popupLake = document.getElementById('popupLake'),
+  popupCounty = document.getElementById('popupCounty'),
+  popupAcres = document.getElementById('popupAcres'),
+  popupShoreline = document.getElementById('popupShoreline'),
+  popupDepth = document.getElementById('popupDepth'),
+  popupClarity = document.getElementById('popupClarity'),
+  popupSpecies = document.getElementById('popupSpecies'),
+  popupLongest = document.getElementById('popupLongest'),
+  popupLink = document.getElementById('popupLink'),
+  popupLoader = document.getElementById('popupLoader'),
+  popupAfterLoad = document.getElementById('popupAfterLoad');
+
 //create popup (leaflet js)
 let popup = L.popup({
-  autoPanPaddingTopLeft: L.point(50, 180),
-  autoPanPaddingBottomRight: L.point(50, 50),
-  autoClose: false,
-  minWidth: 600,
-  minHeight: 600
+  autoPan: false,
+  minWidth: 642,
+  minHeight: 463,
+  keepInView: true,
+  autoClose: false
 });
 
 //listener for change of species
@@ -60,7 +71,6 @@ document.querySelectorAll(".mapLayer").forEach(layer => {
     }
   });
 });
-
 
 //variables for changeSpecies()
 let lakeMarkers,
@@ -111,15 +121,6 @@ function changeSpecies(species) {
   speciesLayerShown = true;
 }
 
-//function for setting popup base content
-function setPopupHeaderContent(lakeProperties) {
-  popupContent = ``;
-  popupContent += `<div class="popupTitle">${lakeProperties.name}</div>`
-  popupContent += `<div class="popupFlex">`
-  popupContent +=   `<div>${lakeProperties.county} county near ${lakeProperties.nearesTown}</div>`;
-  popupContent += `</div>`;
-}
-
 function targetedSurveyIncludesSpecies(survey, species) {
   for (let i=0; i<survey.fishCatchSummaries.length; i++) {
     if(speciesCodes[survey.fishCatchSummaries[i].species] === species) {
@@ -131,7 +132,7 @@ function targetedSurveyIncludesSpecies(survey, species) {
 
 //variables for getSurveyData()
 let speciesCapitalized,
-  popupContent = '',
+  //popupContent = '',
   surveyDates = [],
   surveysByDate = [],
   summariesWithSpecies = [],
@@ -148,8 +149,10 @@ let speciesCapitalized,
 //this gets the lake data from the dnr and displays it
 function getSurveyData(lakeProperties, species) {
   //set base popup content before the rest is loaded
-  setPopupHeaderContent(lakeProperties);
-  popupContent += `<div class="popupLoader"><div></div><div></div><div></div><div></div><div></div></div>`;
+  popupAfterLoad.style.display = 'none';
+  popupLake.innerHTML = lakeProperties.name;
+  popupCounty.innerHTML = `${lakeProperties.county} county near ${lakeProperties.nearesTown}`;
+  popupLoader.style.display = 'block';
   popup.setContent(popupContent);
 
   //fetch survey data for single lake
@@ -165,18 +168,13 @@ function getSurveyData(lakeProperties, species) {
     speciesCapitalized = speciesCapitalized.join(' ');
 
     //set popup content after data is loaded
-    setPopupHeaderContent(lakeProperties);
-    popupContent += `<table class="popupTable">`;
-    popupContent +=   `<tr><td class="popupDetail">Acres         </td><td>:</td><td class="popupInfo">${surveyData.result.areaAcres}               </td></tr>`;
-    popupContent +=   `<tr><td class="popupDetail">Shoreline     </td><td>:</td><td class="popupInfo">${surveyData.result.shoreLengthMiles} miles</td></tr>`;
-    popupContent += `</table>`
-    popupContent += `<table class="popupTable">`
-    popupContent +=   `<tr><td class="popupDetail">Max Depth     </td><td>:</td><td class="popupInfo">${surveyData.result.maxDepthFeet}&#39;    </td></tr>`;
-    popupContent +=   `<tr><td class="popupDetail">Water Clarity </td><td>:</td><td class="popupInfo">${surveyData.result.averageWaterClarity}&#39;</td></tr>`;
-    popupContent += `</table>`;
-    popupContent += `<hr class="popupHR"><br>`;
-    popupContent += `<div class="popupTitle">${speciesCapitalized} Data</div>`;
-    popupContent += `<canvas id="chart"></canvas>`;
+    popupLoader.style.display = 'none';
+    popupAcres.innerHTML = surveyData.result.areaAcres;
+    popupShoreline.innerHTML = `${surveyData.result.shoreLengthMiles} miles`;
+    popupDepth.innerHTML = `${surveyData.result.maxDepthFeet}'`;
+    popupClarity.innerHTML = `${surveyData.result.averageWaterClarity}'`;
+    popupSpecies.innerHTML = `${speciesCapitalized} Data`;
+    popupAfterLoad.style.display = 'block';
     popup.setContent(popupContent);
 
     //sort the surveys by date
@@ -222,11 +220,7 @@ function getSurveyData(lakeProperties, species) {
             summaryGearCount += summary.gearCount;
             summaryResults[summary.gear] = [];
             summaryResults[summary.gear].push(summary.CPUE);
-            if(summary.averageWeight > 0) {
-              summaryResults[summary.gear].push(summary.averageWeight);
-            } else {
-              summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageWeight);
-            }
+            summaryResults[summary.gear].push(summary.averageWeight);
             summaryResults[summary.gear].push(summary.gearCount);
           });
 
@@ -261,23 +255,24 @@ function getSurveyData(lakeProperties, species) {
       }
     }); //end of sortedSurveys.forEach
 
-    //add longest and shortest caught to popup setContent
+
+    popupLink.href = `https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}`;
+
+    //add longest caught to popupContent if available
     if(longestCaught > 0) {
-      popupContent += `<div class="popupFlex">`;
-      popupContent +=   `<div>Longest Fish Sampled: ${longestCaught}"</div>`;
-      popupContent +=   `<a class="popupFlex popupLink" href="https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}" target="_blank">More Info</a>`;
-      popupContent += `</div>`;
+      popupLongest.innerHTML = `Longest Fish Sampled: ${longestCaught}"`;
+      popupLongest.style.display = 'block';
       popup.setContent(popupContent);
     } else {
-      popupContent += `<div class="popupFlex">`;
-      popupContent +=   `<a class="popupFlex popupLink" href="https://www.dnr.state.mn.us/lakefind/lake.html?id=${lakeProperties.id}" target="_blank">More Info</a>`;
-      popupContent += `</div>`;
+      popupLongest.style.display = 'none';
       popup.setContent(popupContent);
     }
 
+    chart.destroy();
+
     //(if > 1) => make a line chart (chart js)
     if(surveyDates.length > 1) {
-      new Chart(document.getElementById('chart'), {
+      chart = new Chart(chartElement, {
         type: 'line',
         data: {
           labels: surveyDates,
@@ -311,7 +306,7 @@ function getSurveyData(lakeProperties, species) {
 
     //(if 1) => make a bar chart (chart js)
     } else if (surveyDates.length === 1) {
-      new Chart(document.getElementById('chart'), {
+      chart = new Chart(chartElement, {
         type: 'bar',
         data: {
           labels: surveyDates,
@@ -333,6 +328,10 @@ function getSurveyData(lakeProperties, species) {
     }
   }); //end fetch.then
 } //end getSurveyData()
+
+//create a chart
+const chartElement = document.getElementById('chart');
+let chart = new Chart(chartElement);
 
 //variable for chart settings (chart js)
 const chartOptions = {
