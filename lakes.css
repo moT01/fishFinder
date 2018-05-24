@@ -21,7 +21,7 @@ body {
 }
 
 .mapLayer {
-  border: 2px solid rgba(80,80,80,1);
+  border: 1px solid rgba(80,80,80,1);
   border-radius: 6px;
   display: inline-block;
   width: calc(20px + 2.5vw);
@@ -79,13 +79,8 @@ body {
 
 /*popup content*/
 #popupContent {
-  /*position: fixed;
-  top: 100px;
-  left: 100px;
+  width: 600px;
   z-index: 1000;
-  background-color: rgba(255,255,255, 0.9);
-  */min-width: 643;
-  min-height: 463;
 }
 
 #popupCounty {
@@ -109,11 +104,11 @@ body {
   text-align: left; }
 
 .popupHR {
+  margin: 13px auto;
+  width: 80%;
+  height: 1px;
   border: 0;
-  height: 0;
-  margin: 13px 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-top: 1px solid #ccc;
 }
 
 .popupFlex {
