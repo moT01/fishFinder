@@ -83,6 +83,10 @@ body {
   z-index: 1000;
 }
 
+#popupClose {
+  display: none;
+}
+
 #popupCounty {
   margin: 8px 0;
 }

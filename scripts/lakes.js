@@ -107,7 +107,8 @@ const speciesInput = document.getElementById('speciesInput'),
     }
   };
 
-let lakeMarkers,
+let isMobile = window.innerWidth < 700 ? true : false,
+  lakeMarkers,
   speciesLayerShown = false,
   surveyDates = [],
   surveysByDate = [],
@@ -169,17 +170,23 @@ function changeSpecies(species) {
 
   lakeMarkers = L.geoJson(allLakesGeojson, {
     pointToLayer: function(feature, LatLng){
-      let marker = L.marker(LatLng),
-        popup = L.popup({
+      let marker = L.marker(LatLng);
+      //if(!isMobile) {
+        let popup = L.popup({
           minWidth: 600,
           closeOnClick: true,
           closeOnEscapeKey: false,
           keepInView: true
         });
+        marker.bindPopup(popup);
+        popup.setContent(popupContent);
+      //}
+
       marker.bindTooltip(feature.properties.name);
-      marker.bindPopup(popup);
-      popup.setContent(popupContent);
       marker.on('click', function() {
+      //  if(isMobile) {
+
+      //  }
         getSurveyData(this.feature.properties, species);
       });
 
