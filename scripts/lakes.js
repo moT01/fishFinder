@@ -122,7 +122,8 @@ let lakeMarkers,
   weightDataset = [],
   longestFish = 0,
   clusters = L.markerClusterGroup({
-    showCoverageOnHover: true
+    showCoverageOnHover: true,
+    removeOutsideVisibleBounds: true
   }),
   map = L.map('map', {
     zoomSnap: 0,
