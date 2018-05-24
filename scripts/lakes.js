@@ -106,8 +106,8 @@ const speciesInput = document.getElementById('speciesInput'),
     }
   };
 
-let popupWidth = window.innerWidth < 600 ? window.innerWidth : 600,
-  keepInView = window.innerWidth < 600 ? false : true,
+let popupWidth = window.innerWidth < 600 ? 400 : 600,
+  keepInView = window.innerWidth < 1000 ? false : true,
   lakeMarkers,
   speciesLayerShown = false,
   surveyDates = [],
@@ -388,8 +388,8 @@ mapLayers.forEach(layer => {
 });
 
 window.addEventListener('resize', function() {
-  popupWidth = window.innerWidth < 600 ? window.innerWidth : 600;
-  keepInView = window.innerWidth < 600 ? false : true;
+  popupWidth = window.innerWidth < 600 ? 400 : 600;
+  keepInView = window.innerWidth < 1000 ? false : true;
 });
 
 map.addLayer(clusters);
