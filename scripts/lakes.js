@@ -14,7 +14,7 @@ const speciesInput = document.getElementById('speciesInput'),
   popupLink = document.getElementById('popupLink'),
   popupLoader = document.getElementById('popupLoader'),
   popupAfterLoad = document.getElementById('popupAfterLoad'),
-  mapLayers = document.querySelectorAll('mapLayer'),
+  mapLayers = document.querySelectorAll('.mapLayer'),
   tileLayers = {
     lakeContours: L.tileLayer('https://maps1.dnr.state.mn.us/mapcache/gmaps/lakefinder@mn_google/{z}/{x}/{y}.png'),
     terrain: L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', { id: 'mapbox.streets' }),
@@ -126,27 +126,20 @@ let lakeMarkers,
   }),
   map = L.map('map', {
     zoomSnap: 0,
-    closePopupOnClick: false,
     zoomAnimation: false,
     fadeAnimation: false,
     markerZoomAnimation: false,
-    autoPanPaddingTopLeft: 20,
     center: [46.3924658,-93.5],
     zoom: 6.5,
     maxZoom: 18,
     minZoom: 5.5,
     zoomControl: false,
+    doubleClickZoom: false,
     layers: [tileLayers.terrain, tileLayers.lakeContours],
     maxBounds:([
       [20, -135],
       [60, -55]
     ])
-  }),
-  popup = L.popup({
-    minWidth: 600,
-    closeOnClick: true,
-    closeOnEscapeKey: false,
-    keepInView: true
   }),
   chart = new Chart(chartElement);
 
@@ -175,7 +168,13 @@ function changeSpecies(species) {
 
   lakeMarkers = L.geoJson(allLakesGeojson, {
     pointToLayer: function(feature, LatLng){
-      let marker = L.marker(LatLng);
+      let marker = L.marker(LatLng),
+        popup = L.popup({
+          minWidth: 600,
+          closeOnClick: true,
+          closeOnEscapeKey: false,
+          keepInView: true
+        });
       marker.bindTooltip(feature.properties.name);
       marker.bindPopup(popup);
       popup.setContent(popupContent);
