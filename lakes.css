@@ -79,12 +79,8 @@ body {
 
 /*popup content*/
 #popupContent {
-  width: 600px;
+  max-width: 600px;
   z-index: 1000;
-}
-
-#popupClose {
-  display: none;
 }
 
 #popupCounty {

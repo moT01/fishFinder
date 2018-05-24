@@ -107,7 +107,7 @@ const speciesInput = document.getElementById('speciesInput'),
     }
   };
 
-let isMobile = window.innerWidth < 700 ? true : false,
+let popupWidth = window.innerWidth < 600 ? window.innerWidth : 600,
   lakeMarkers,
   speciesLayerShown = false,
   surveyDates = [],
@@ -170,23 +170,17 @@ function changeSpecies(species) {
 
   lakeMarkers = L.geoJson(allLakesGeojson, {
     pointToLayer: function(feature, LatLng){
-      let marker = L.marker(LatLng);
-      //if(!isMobile) {
-        let popup = L.popup({
-          minWidth: 600,
+      let marker = L.marker(LatLng),
+        popup = L.popup({
+          minWidth: popupWidth,
           closeOnClick: true,
           closeOnEscapeKey: false,
           keepInView: true
         });
-        marker.bindPopup(popup);
-        popup.setContent(popupContent);
-      //}
-
+      marker.bindPopup(popup);
+      popup.setContent(popupContent);
       marker.bindTooltip(feature.properties.name);
       marker.on('click', function() {
-      //  if(isMobile) {
-
-      //  }
         getSurveyData(this.feature.properties, species);
       });
 
@@ -391,6 +385,10 @@ mapLayers.forEach(layer => {
       map.addLayer(clusters);
     }
   });
+});
+
+window.addEventListener('resize', function() {
+  popupWidth = window.innerWidth < 600 ? window.innerWidth : 600;
 });
 
 map.addLayer(clusters);
