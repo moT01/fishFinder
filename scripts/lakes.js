@@ -2,7 +2,6 @@
 const speciesInput = document.getElementById('speciesInput'),
   chartElement = document.getElementById('chart'),
   popupContent = document.getElementById('popupContent'),
-  popupClose = document.getElementById('popupClose'),
   popupLake = document.getElementById('popupLake'),
   popupCounty = document.getElementById('popupCounty'),
   popupAcres = document.getElementById('popupAcres'),
@@ -108,6 +107,7 @@ const speciesInput = document.getElementById('speciesInput'),
   };
 
 let popupWidth = window.innerWidth < 600 ? window.innerWidth : 600,
+  keepInView = window.innerWidth < 600 ? false : true,
   lakeMarkers,
   speciesLayerShown = false,
   surveyDates = [],
@@ -175,7 +175,7 @@ function changeSpecies(species) {
           minWidth: popupWidth,
           closeOnClick: true,
           closeOnEscapeKey: false,
-          keepInView: true
+          keepInView: keepInView
         });
       marker.bindPopup(popup);
       popup.setContent(popupContent);
@@ -389,6 +389,7 @@ mapLayers.forEach(layer => {
 
 window.addEventListener('resize', function() {
   popupWidth = window.innerWidth < 600 ? window.innerWidth : 600;
+  keepInView = window.innerWidth < 600 ? false : true;
 });
 
 map.addLayer(clusters);
