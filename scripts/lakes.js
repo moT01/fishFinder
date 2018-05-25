@@ -68,7 +68,7 @@ const speciesInput = document.getElementById('speciesInput'),
         },
         gridLines: {
           borderDash: [12, 2],
-          zeroLineWidth: 1,
+          zeroLineWidth: 1.2,
           zeroLineColor: 'black'
         },
         ticks: {
@@ -78,13 +78,13 @@ const speciesInput = document.getElementById('speciesInput'),
           min: -100,
           callback: function(value, index, values) {
             if(value === 0) {
-              return 'Average';
+              return 'Average ';
             } else if(value === -100) {
-              return 'None';
+              return 'None ';
             } else if(value > 0) {
-              return '+' +value+ '%';
+              return '+' +value+ '% ';
             } else if(value < 0) {
-              return value + '%';
+              return value + '% ';
             }
           }
         }
