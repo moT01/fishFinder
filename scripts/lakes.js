@@ -250,6 +250,8 @@ function getSurveyData(lakeProperties, species) {
             return speciesCodes[summary.species] === species;
           });
 
+console.log(summariesWithSpecies);
+
           //empty for summaries
           summaryResults = {};
           summaryGearCount = 0,
@@ -257,10 +259,13 @@ function getSurveyData(lakeProperties, species) {
           weightDataPoint = 0;
 
           summariesWithSpecies.forEach(summary => {
-            summaryGearCount += summary.gearCount;
+            //this test will give add one gear if the data shows 0 (typical with infinity CPUE rates)
+            summary.gearCount > 0 ? summaryGearCount += summary.gearCount : summaryGearCount++;
             summaryResults[summary.gear] = [];
+
             //this test puts an average CPUE for ones that have infity in the data
-            summary.CPUE > 0 ? summaryResults[summary.gear].push(summary.CPUE) : summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageCPUE);
+            isFinite(summary.CPUE) ? summaryResults[summary.gear].push(summary.CPUE) : summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageCPUE);
+
             //this test puts in an average weight for times the weight was not recorded
             summary.averageWeight > 0 ? summaryResults[summary.gear].push(summary.averageWeight) : summaryResults[summary.gear].push(statewideAverages[species][summary.gear].averageWeight*0.0022046);
             summaryResults[summary.gear].push(summary.gearCount);
@@ -272,11 +277,7 @@ function getSurveyData(lakeProperties, species) {
             tempCPUE = summaryResults[type][0]/statewideAverages[species][type].averageCPUE;
 
             //this must be for ruling out weights with zeros or N/A or something like that
-            if(summaryResults[type][1]/statewideAverages[species][type].averageWeight > 0) {
-              tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight;
-            } else {
-              tempWeight = 0;
-            }
+            summaryResults[type][1]/statewideAverages[species][type].averageWeight > 0 ? tempWeight = 453.59237 * summaryResults[type][1]/statewideAverages[species][type].averageWeight : tempWeight = 0;
 
             //calculate weighted average using the number of gear used (more gear = more weight)
             tempCPUE   *= (summaryResults[type][2]/summaryGearCount);
