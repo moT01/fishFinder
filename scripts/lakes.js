@@ -175,7 +175,7 @@ function changeSpecies(species) {
           minWidth: popupWidth,
           closeOnClick: true,
           closeOnEscapeKey: false,
-          keepInView: keepInView
+          keepInView: false
         });
       marker.bindPopup(popup);
       popup.setContent(popupContent);
