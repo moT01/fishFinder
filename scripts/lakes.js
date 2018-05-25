@@ -38,22 +38,22 @@ const speciesInput = document.getElementById('speciesInput'),
           } else if(tooltipItem.yLabel < 0) {
             //dataset 0 for CPUE
             if(tooltipItem.datasetIndex === 0) {
-              return 'catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
+              return ' catch rate: ' + Math.abs(tooltipItem.yLabel) + '% below average';
             //dataset 1 for weight
             } else {
-              return 'weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
+              return ' weight: ' + Math.abs(tooltipItem.yLabel) + '% below average';
             }
           } else if(tooltipItem.yLabel === 0) {
             if(tooltipItem.datasetIndex === 0) {
-              return 'catch rate: average';
+              return ' catch rate: average';
             } else {
-              return 'weight: average';
+              return ' weight: average';
             }
           } else {
             if(tooltipItem.datasetIndex === 0) {
-              return 'catch rate: ' + tooltipItem.yLabel + '% above average';
+              return ' catch rate: ' + tooltipItem.yLabel + '% above average';
             } else {
-              return 'weight: ' + tooltipItem.yLabel + '% above average ';
+              return ' weight: ' + tooltipItem.yLabel + '% above average ';
             }
           }
         }
