@@ -106,7 +106,7 @@ const speciesInput = document.getElementById('speciesInput'),
     }
   };
 
-let popupWidth = window.innerWidth < 800 ? 400 : 600,
+let popupWidth = window.innerWidth < 800 ? 300 : 600,
   keepInView = window.innerWidth < 1200 ? false : true,
   lakeMarkers,
   speciesLayerShown = false,
@@ -173,10 +173,9 @@ function changeSpecies(species) {
       let marker = L.marker(LatLng),
         popup = L.popup({
           minWidth: popupWidth,
-          autoClose: false,
           closeOnClick: true,
           closeOnEscapeKey: false,
-          keepInView: false
+          keepInView: keepInView
         });
       marker.bindPopup(popup);
       popup.setContent(popupContent);
@@ -388,7 +387,7 @@ mapLayers.forEach(layer => {
 });
 
 window.addEventListener('resize', function() {
-  popupWidth = window.innerWidth < 800 ? 400 : 600;
+  popupWidth = window.innerWidth < 800 ? 300 : 600;
   keepInView = window.innerWidth < 1200 ? false : true;
 });
 
