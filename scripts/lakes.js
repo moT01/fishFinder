@@ -24,7 +24,7 @@ const speciesInput = document.getElementById('speciesInput'),
     layout: {
       padding: {
         top: 0,
-        bottom: 5
+        bottom: 4
       }
     },
     tooltips: {
@@ -92,7 +92,7 @@ const speciesInput = document.getElementById('speciesInput'),
       xAxes: [{
         scaleLabel: {
           display: true,
-          labelString: 'Survey Year',
+          labelString: 'Survey Year                   ',
           fontStyle: 'bold'
         },
         ticks: {
