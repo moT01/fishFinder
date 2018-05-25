@@ -106,8 +106,8 @@ const speciesInput = document.getElementById('speciesInput'),
     }
   };
 
-let popupWidth = window.innerWidth < 600 ? 400 : 600,
-  keepInView = window.innerWidth < 1000 ? false : true,
+let popupWidth = window.innerWidth < 800 ? 400 : 600,
+  keepInView = window.innerWidth < 1200 ? false : true,
   lakeMarkers,
   speciesLayerShown = false,
   surveyDates = [],
@@ -250,8 +250,6 @@ function getSurveyData(lakeProperties, species) {
             return speciesCodes[summary.species] === species;
           });
 
-console.log(summariesWithSpecies);
-
           //empty for summaries
           summaryResults = {};
           summaryGearCount = 0,
@@ -389,8 +387,8 @@ mapLayers.forEach(layer => {
 });
 
 window.addEventListener('resize', function() {
-  popupWidth = window.innerWidth < 600 ? 400 : 600;
-  keepInView = window.innerWidth < 1000 ? false : true;
+  popupWidth = window.innerWidth < 800 ? 400 : 600;
+  keepInView = window.innerWidth < 1200 ? false : true;
 });
 
 map.addLayer(clusters);
