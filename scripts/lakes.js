@@ -173,6 +173,7 @@ function changeSpecies(species) {
       let marker = L.marker(LatLng),
         popup = L.popup({
           minWidth: popupWidth,
+          autoClose: false,
           closeOnClick: true,
           closeOnEscapeKey: false,
           keepInView: false
