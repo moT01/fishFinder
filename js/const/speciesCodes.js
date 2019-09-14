@@ -1,4 +1,4 @@
-const speciesCodes = {
+export const speciesCodes = {
   "WAE":"walleye",
   "SAR":"sauger",
   "NOP":"northern pike",

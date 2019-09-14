@@ -1,5 +1,8 @@
 //imports //imports //imports //imports //imports //imports //imports //imports //imports 
 import { allLakesGeojson } from './const/allLakesGeojson.js';
+import { speciesCodes } from './const/speciesCodes.js';
+import { speciesMerged } from './const/speciesMerged.js';
+import { statewideAverages } from './const/statewideAverages.js';
 
 
 //global variables //global variables //global variables //global variables //global variables

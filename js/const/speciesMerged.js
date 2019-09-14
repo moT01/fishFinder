@@ -1,4 +1,4 @@
-const speciesMerged = {
+export const speciesMerged = {
   "walleye":"walleye",
   "sauger":"walleye",
   "northern pike":"northern pike",
