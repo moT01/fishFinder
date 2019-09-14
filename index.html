@@ -12,15 +12,25 @@
     <link rel="stylesheet" href="./leaflet/leaflet1.3.1.css" />
     <link rel="stylesheet" href="./leaflet/markerCluster1.3.0.css"/>
 
-    <!--CDN links>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.3.0/MarkerCluster.css"/-->
-
-    <link rel="stylesheet" href="lakes.css" />
+    <link rel="stylesheet" href="index.css" >
     <link rel="manifest" href="/manifest.json">
 
     <!-- ios support -->
-    <link rel="apple-touch-icon" href="/fish-icon.png">
+    <!-- home screen icons -->
+    <link rel="apple-touch-icon" href="icons/fish-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/fish-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/fish-icon-192x192.png">
+
+    <!-- splash screen images - need to make images proper sizes-->
+    <!--meta name="apple-mobile-web-app-capable" content="yes" />
+    <link href="/apple_splash_2048.png" sizes="2048x2732" rel="apple-touch-startup-image" />
+    <link href="/apple_splash_1668.png" sizes="1668x2224" rel="apple-touch-startup-image" />
+    <link href="/apple_splash_1536.png" sizes="1536x2048" rel="apple-touch-startup-image" />
+    <link href="/apple_splash_1125.png" sizes="1125x2436" rel="apple-touch-startup-image" />
+    <link href="/apple_splash_1242.png" sizes="1242x2208" rel="apple-touch-startup-image" />
+    <link href="/apple_splash_750.png" sizes="750x1334" rel="apple-touch-startup-image" />
+    <link href="/apple_splash_640.png" sizes="640x1136" rel="apple-touch-startup-image" /-->
+
     <meta name="apple-mobile-web-app-status-bar" content="#FFE1C4">
     <meta name="theme-color" content="#FFE1C4">
   </head>
@@ -118,15 +128,9 @@
     <script type="text/javascript" src="./leaflet/markerCluster1.3.0.js"></script>
     <script type="text/javascript" src="./chartjs/chart2.6.0.js"></script>
 
-    <!--CDN links
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.3.0/leaflet.markercluster.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.js"></script-->
-
-    <script type="text/javascript" src="./scripts/allLakesGeojson.js"></script>
-    <script type="text/javascript" src="./scripts/statewideAverages.js"></script>
-    <script type="text/javascript" src="./scripts/speciesCodes.js"></script>
-    <script type="text/javascript" src="./scripts/speciesMerged.js"></script>
-    <script type="text/javascript" src="./scripts/lakes.js"></script>
+    <script type="text/javascript" src="./js/const/statewideAverages.js"></script>
+    <script type="text/javascript" src="./js/const/speciesCodes.js"></script>
+    <script type="text/javascript" src="./js/const/speciesMerged.js"></script>
+    <script type="module" src="/js/index.js"></script>
   </body>
 </html>

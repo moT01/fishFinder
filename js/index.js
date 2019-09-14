@@ -1,3 +1,7 @@
+//imports //imports //imports //imports //imports //imports //imports //imports //imports 
+import { allLakesGeojson } from './const/allLakesGeojson.js';
+
+
 //global variables //global variables //global variables //global variables //global variables
 const speciesInput = document.getElementById('speciesInput'),
   chartElement = document.getElementById('chart'),
@@ -112,6 +116,7 @@ let popupWidth = window.innerWidth < 800 ? 400 : 600,
   speciesLayerShown = false,
   surveyDates = [],
   surveysByDate = [],
+  surveyYear,
   summariesWithSpecies = [],
   summaryResults = {},
   summaryGearCount = 0,
@@ -121,7 +126,7 @@ let popupWidth = window.innerWidth < 800 ? 400 : 600,
   weightDataPoint,
   cpueDataset = [],
   weightDataset = [],
-  longestFish = 0,
+  longestCaught = 0,
   clusters = L.markerClusterGroup({
     showCoverageOnHover: true,
     removeOutsideVisibleBounds: true
