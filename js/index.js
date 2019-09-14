@@ -1,4 +1,5 @@
-//imports //imports //imports //imports //imports //imports //imports //imports //imports 
+//imports //imports //imports //imports //imports //imports //imports //imports //imports
+//these are some constant variables used in this file
 import { allLakesGeojson } from './const/allLakesGeojson.js';
 import { speciesCodes } from './const/speciesCodes.js';
 import { speciesMerged } from './const/speciesMerged.js';
