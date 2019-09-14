@@ -1,3 +1,12 @@
-#### fishFinder
+## fishFinder
+##### A rebuild of my lake finder
+##### Check it out [here](https://fish-finder.glitch.me/)
 
-- [DEMO](http://htmlpreview.github.io/?https://github.com/moT01/fishFinder/blob/master/index.html)
+##### Technologies Used
+- HTML
+- CSS
+- Javascript
+- Leaflet
+- Chart.js
+- Node
+- [MN DNR](https://www.dnr.state.mn.us/) API
