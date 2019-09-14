@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>Fish Finder</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link rel="shortcut icon" href="fish-icon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="theme-color" content="#000000" />
+    <link rel="shortcut icon" href="fish-icon.png" />
 
     <!--downloaded copies-->
     <link rel="stylesheet" href="./leaflet/leaflet1.3.1.css" />
@@ -15,6 +17,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.3.0/MarkerCluster.css"/-->
 
     <link rel="stylesheet" href="lakes.css" />
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- ios support -->
+    <link rel="apple-touch-icon" href="/fish-icon.png">
+    <meta name="apple-mobile-web-app-status-bar" content="#FFE1C4">
+    <meta name="theme-color" content="#FFE1C4">
   </head>
 
   <body>
@@ -102,6 +110,8 @@
         </div>
       </div>
     </div>
+
+    <script type="text/javascript" src="./registerSw.js"></script>
 
     <!--downloaded copies-->
     <script type="text/javascript" src="./leaflet/leaflet1.3.1.js"></script>
